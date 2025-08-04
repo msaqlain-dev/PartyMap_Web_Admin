@@ -1,0 +1,56 @@
+/* Container for the Select component  */
+.custom-select-container {
+  position: relative; /* Allows for absolute positioning of error message */
+  height: 100px; /* Adjust based on your requirements */
+  box-sizing: border-box; /* Include padding and border in height calculation */
+}
+
+/* Select component styling */
+.custom-select .ant-select-selector {
+  height: 38px !important; /* Fixed height for the select field */
+  font-size: 0.875rem !important;
+  line-height: 34.5px !important; /* Align text vertically */
+  box-sizing: border-box; /* Include padding and border in height calculation */
+}
+
+/* Media query for screens smaller than 768px (tablets and below) */
+@media (max-width: 768px) {
+  .custom-select .ant-select-selector {
+    font-size: 0.75rem !important;
+  }
+
+  .custom-select-container {
+    height: 90px; /* Adjust height for tablets */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 648px) {
+  .custom-select .ant-select-selector {
+    height: 34.1px !important; /* Fixed height for the select field */
+  }
+
+  .custom-select-container {
+    height: 90px; /* Adjust height for tablets */
+  }
+}
+@media (min-width: 648px) and (max-width: 768px) {
+  .custom-select .ant-select-selector {
+    font-size: 0.9rem !important;
+  }
+
+  .custom-select-container {
+    height: 90px; /* Adjust height for tablets */
+  }
+}
+
+/* Media query for screens smaller than 480px (phones and below) */
+@media (max-width: 480px) {
+  .custom-select .ant-select-selector {
+    font-size: 12px !important;
+    height: 34.1px !important; /* Fixed height for the select field */
+  }
+
+  .custom-select-container {
+    height: 80px; /* Adjust height for phones */
+  }
+}

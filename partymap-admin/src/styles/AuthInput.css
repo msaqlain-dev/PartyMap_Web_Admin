@@ -1,0 +1,64 @@
+.inputAuth {
+    color: #494949;
+    font-size: 24px;
+    text-align: center;
+    height: 46px;
+    width: 46px;
+    border: 1px solid #d6d6d6;
+    border-radius: 4px;
+    outline: none;
+}
+
+.inputAuth:focus {
+    /* border-color: #007bff; */
+    box-shadow: 0 0 0 4px rgba(38, 143, 255, 0.25);
+}
+
+.inputCont {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 35px;
+}
+
+/* Media Queries for Responsive Design */
+/* @media (max-width: 1200px) {
+    .inputAuth {
+        height: 60px;
+        width: 60px;
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 992px) {
+    .inputAuth {
+        height: 50px;
+        width: 50px;
+        font-size: 18px;
+    }
+}
+
+*/
+ @media (max-width: 768px) {
+    .inputCont {
+        gap: 30px;
+    }
+}
+
+@media (max-width: 576px) {
+    .inputCont {
+        gap: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    .inputCont {
+        gap: 10px;
+        }
+    .inputAuth {
+        height: 30px;
+        width: 30px;
+        font-size: 14px;
+        }
+}

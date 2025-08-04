@@ -1,0 +1,9 @@
+export { default as TableCircleLoader } from "./TableCircleLoader";
+export { default as TableRowLoader } from "./TableRowLoader";
+export { default as TableActionLoader } from "./TableActionLoader";
+export { default as TableRowSelectionLoader } from "./TableRowSelectionLoader";
+export { default as StepperLoader } from "./StepperLoader";
+export { default as FormContentLoader } from "./FormContentLoader";
+export { default as FormLoader } from "./FormLoader";
+export { default as MAinPageLoader } from './MainPageLoader';
+export { default as PropertyDetailsLoader } from './PropertyDetailsLoader';

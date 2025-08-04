@@ -1,0 +1,21 @@
+.fixed-tabs .ant-tabs-nav{
+  padding-left: 0 !important;
+}
+
+.fixed-tabs .ant-tabs-nav-wrap {
+  max-width: 1200px;
+  flex: 1 !important;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+}
+
+.fixed-tabs .ant-tabs-nav-operations {
+  display: none !important;
+}
+
+@media (width>1280px){
+  .fixed-tabs .ant-tabs-nav-wrap {
+    padding-left: 0;
+  }
+}

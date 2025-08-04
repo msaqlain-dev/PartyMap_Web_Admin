@@ -1,0 +1,4 @@
+.no-hover-bg .ant-dropdown-menu-item:hover {
+  background-color: transparent !important;
+}
+

@@ -1,0 +1,96 @@
+@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;700&display=swap");
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  font-size: 11px;
+  font-family: "Figtree", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: "Figtree", Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+
+@media (min-width: 769px) {
+  /* md */
+  body {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 1537px) {
+  /* 2xl */
+  body {
+    font-size: 14px;
+  }
+}
+
+.custom-select-dropdown .ant-select-item-option:hover {
+  color: black !important;
+}
+.dark .custom-select-dropdown .ant-select-item-option:hover {
+  background-color: white !important;
+  color: black !important;
+}
+.dark .ant-select-dropdown {
+  background-color: #020617 !important;
+  padding: 0 !important;
+}
+
+.ant-select-selector {
+  border-color: rgba(209, 213, 219, 1) !important;
+}
+
+/* Change the checkbox selection color */
+.custom-table .ant-checkbox-checked .ant-checkbox-inner {
+  background-color: #1996a6 !important;
+  border-color: #1996a6 !important;
+}
+
+.custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
+.custom-table .ant-checkbox:hover .ant-checkbox-inner {
+  border-color: #1996a6 !important;
+}
+
+.custom-table .ant-checkbox-checked::after {
+  border-color: #1996a6 !important;
+}
+
+.custom-pagination .ant-select-dropdown {
+  background-color: white !important; 
+  color: white !important;
+}
+
+.ant-pagination-item-active {
+  border: transparent !important;
+  border-radius: 4px !important; 
+  outline: 1px solid #1677ff !important; 
+}
+
+.custom-pagination .ant-select-selector {
+  background-color: white !important; 
+  color: black !important;
+}
+
+.custom-pagination .ant-select-item:hover {
+  background-color: #f0f0f0 !important;
+  color: black !important; 
+}
+
+.custom-pagination .ant-select-item.ant-select-item-selected {
+  background-color: #e6f7ff !important;
+  color: black !important; 
+}
+
+.dotted-line span:first-child {
+  flex-grow: 1;
+  margin-right: 10px;
+  display: inline-block;
+  border-bottom: 1px dotted #ccc;
+}
+
+.driver-popover.driverjs-theme .driver-popover-title {
+  min-height: 270px;
+}

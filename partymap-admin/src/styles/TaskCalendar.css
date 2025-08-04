@@ -1,0 +1,27 @@
+.task-calendar .fc-h-event {
+  background-color: transparent !important;
+  border: none;
+}
+
+.task-calendar .fc-day {
+  background-color: #f5f5f5 !important;
+}
+.task-calendar .fc-day-today {
+  background-color: #d2f8d2 !important;
+}
+
+html.dark .task-calendar .fc-day {
+  background-color: #1f1f1f !important;
+}
+
+html.dark .task-calendar .fc-daygrid-day-top {
+  color: #8e92a0;
+}
+
+html.dark .task-calendar .fc-toolbar-title {
+  color: #fff;
+}
+
+html.dark .task-calendar .fc-scrollgrid-sync-inner {
+  color: #8e92a0;
+}

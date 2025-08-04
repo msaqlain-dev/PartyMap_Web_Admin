@@ -1,0 +1,12 @@
+.widget {
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.drag-handle {
+  cursor: move;
+}

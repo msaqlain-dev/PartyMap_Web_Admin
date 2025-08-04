@@ -1,0 +1,31 @@
+/* #e9ffec
+#0017ff33
+*/
+
+.fc-daygrid-dot-event:hover {
+  background-color: transparent;
+}
+
+.fc-scrollgrid-sync-inner {
+  padding: 10px 0;
+}
+
+.fc .fc-daygrid-day.fc-day-today{
+  background-color: #e9ffec;
+}
+
+.fc-button-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fc-button {
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.5rem !important;
+  color: white !important;
+  background-color: #fab54e !important; /* Secondary color */
+  /* background-image: linear-gradient(to bottom, ##f79418, #1996a6) !important; */
+  border: 1px solid transparent !important;
+  transition: background-image 0.3s ease !important;
+}

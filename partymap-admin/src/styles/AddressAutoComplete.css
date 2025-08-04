@@ -1,0 +1,17 @@
+.scrollbar {
+  overflow-y: auto;
+}
+
+.scrollbar::-webkit-scrollbar {
+  width: 15px !important;
+}
+
+.scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.scrollbar::-webkit-scrollbar-thumb {
+  background: #7a7a7a !important;
+  border-radius: 9999px !important;
+  border: 3px solid #fff !important;
+}

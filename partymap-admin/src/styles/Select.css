@@ -1,0 +1,5 @@
+/* Scoped styling for custom-select */
+.simple-select .ant-select-selector {
+  border: none !important; /* No border */
+  box-shadow: none !important; /* No shadow */
+}

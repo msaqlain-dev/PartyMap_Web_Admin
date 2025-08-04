@@ -1,0 +1,5 @@
+
+.print-bg,
+.print-bg > th {
+  print-color-adjust: exact;
+}

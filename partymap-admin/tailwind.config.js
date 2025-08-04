@@ -3,7 +3,7 @@ const defaultConfig = require("tailwindcss/defaultConfig");
 
 module.exports = {
   ...defaultConfig,
-  darkMode: ["class"],
+  // darkMode: ["class"],
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     ...defaultConfig.theme,

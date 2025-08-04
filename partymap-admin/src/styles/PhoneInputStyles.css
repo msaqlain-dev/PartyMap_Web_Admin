@@ -11,42 +11,11 @@
      /* height: 40px !important; */
 }
 
-.custom-phone-input-dark {
-    background-color: #020617 !important;
-    border: 1px solid #d1d5db !important; 
-    border-radius: 0.5rem !important;
-    height: 40px !important;
-    width: 100% !important;
-    color:#d1d5db !important;
-}
-
-.custom-phone-input-dark:focus{
-    border: 1px solid #fab54e !important;
-    background-color: white !important;
-    color: black !important;
-
-    /* height: 40px !important; */
-}
-
 .custom-phone-button {
     border: 1px solid #d1d5db !important; 
     border-right: hidden !important;
     border-radius: 0.5rem 0 0 0.5rem !important;
     
-}
-
-.custom-phone-button-dark {
-    background-color: #020617 !important;
-    border: 1px solid #d1d5db !important;
-    border-right: hidden !important;  
-    border-radius: 0.5rem 0 0 0.5rem !important;
-}
-
-.custom-phone-button-focused-dark {
-    background-color: white !important;
-    border: 1px solid #fab54e !important; 
-    border-right: hidden !important; 
-    border-radius: 0.5rem 0 0 0.5rem !important;
 }
 
 .custom-phone-button-focused{
@@ -66,39 +35,6 @@
     border-right: hidden !important;
     border-radius: 0.5rem 0 0 0.5rem !important;
 }
-
-
-.custom-phone-error-dark:focus{
-    border: 1px solid red !important; 
-    border-radius: 0.5rem !important;
-    /* height: 40px !important; */
-    width: 100% !important;
-    background-color: white !important;
-    color: black !important;
-    
-}
-.custom-phone-error-dark{
-    border: 1px solid red !important; 
-    border-radius: 0.5rem !important;
-    height: 40px !important;
-    width: 100% !important;
-    background-color: #020617 !important;
-    color: white !important;
-}
-
-.custom-phone-error-button-dark {
-    border: 1px solid red !important; 
-    border-right: hidden !important;
-    border-radius: 0.5rem 0 0 0.5rem !important;
-    background-color: #020617 !important;
-}
-
-.custom-phone-error-button-focused-dark {
-    border: 1px solid red !important; 
-    border-right: hidden !important;
-    border-radius: 0.5rem 0 0 0.5rem !important;
-    background-color: white !important;
-}
   
 .large{
     height: 46px !important;
@@ -108,10 +44,6 @@
     background-color: #f3f4f6 !important;
     cursor: not-allowed !important;
     color: #94a3b8 !important;
-}
-
-.phone-field-disabled-dark{
-    color: #d1d5db !important;
 }
 
 @media (max-width: 640px) {

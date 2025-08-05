@@ -91,8 +91,8 @@ const TableCustomizeColumnMenu = ({
       theme={{
         components: {
           Checkbox: {
-            colorPrimary: "#1996a6",
-            colorPrimaryHover: "#1996a6",
+            colorPrimary: "#E10098",
+            colorPrimaryHover: "#E10098",
           },
         },
       }}
@@ -113,7 +113,7 @@ const TableCustomizeColumnMenu = ({
         <div className="cursor-pointer flex items-center justify-center hover:bg-transparent">
           <Space>
             <span>
-              <MoreOutlined className="text-xl" style={{ color: "#1996a6" }} />
+              <MoreOutlined className="text-xl" style={{ color: "#E10098" }} />
             </span>
           </Space>
         </div>

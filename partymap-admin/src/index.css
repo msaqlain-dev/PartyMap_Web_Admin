@@ -37,17 +37,17 @@ code {
 
 /* Change the checkbox selection color */
 .custom-table .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: #1996a6 !important;
-  border-color: #1996a6 !important;
+  background-color: #E10098 !important;
+  border-color: #E10098 !important;
 }
 
 .custom-table .ant-checkbox-wrapper:hover .ant-checkbox-inner,
 .custom-table .ant-checkbox:hover .ant-checkbox-inner {
-  border-color: #1996a6 !important;
+  border-color: #E10098 !important;
 }
 
 .custom-table .ant-checkbox-checked::after {
-  border-color: #1996a6 !important;
+  border-color: #E10098 !important;
 }
 
 .custom-pagination .ant-select-dropdown {
@@ -58,7 +58,7 @@ code {
 .ant-pagination-item-active {
   border: transparent !important;
   border-radius: 4px !important; 
-  outline: 1px solid #1677ff !important; 
+  outline: 1px solid #E10098 !important; 
 }
 
 .custom-pagination .ant-select-selector {

@@ -89,7 +89,7 @@ const NotificationsSidebar = () => {
                 Notifications
               </h2>
               {unreadNotifications.length > 0 && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary text-primary">
                   {unreadNotifications.length} unread
                 </span>
               )}
@@ -119,7 +119,7 @@ const NotificationsSidebar = () => {
             <div className="p-4 border-b border-gray-200 bg-gray-50">
               <button
                 onClick={handleMarkAllAsRead}
-                className="text-sm text-primary-600 hover:text-primary-800 font-medium transition-colors"
+                className="text-sm text-primary hover:text-primary font-medium transition-colors"
               >
                 Mark all as read
               </button>

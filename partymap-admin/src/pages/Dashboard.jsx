@@ -121,7 +121,7 @@ const Dashboard = () => {
               {recentActivity.map((item) => (
                 <div key={item.id} className="flex items-center space-x-4">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                       <span className="text-lg">
                         {getActivityIcon(item.type)}
                       </span>

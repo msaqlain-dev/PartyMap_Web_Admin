@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, Fragment } from "react";
-import { CustomTable, SearchField, TableCustomizeColumnMenu } from "../components";
+import {
+  CustomTable,
+  SearchField,
+  TableCustomizeColumnMenu,
+} from "../components";
 import { MarkersTableColumn } from "../content/TableCustomizeColumnData";
 import { MarkersDefaultFilter } from "../content/DefaultFilters";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +13,7 @@ import { debounce } from "../utils";
 import { markersOptions } from "../content/DropDownData";
 import * as Loader from "../components/Loaders";
 import TableAddButton from "../components/TableAddButton";
+import { Space } from "antd";
 
 const MapManagement = () => {
   const [checkedTableMenuColumn, setCheckedTableMenuColumn] =
@@ -133,146 +138,81 @@ const MapManagement = () => {
 
   const columns = [
     {
-      title: "IMG",
-      dataIndex: "image",
-      loader: <Loader.TableCircleLoader />,
-      render: (_, record) => {
-        const { propertyImage } = record;
-        return propertyImage ? (
-          <img
-            src={propertyImage}
-            alt="property"
-            className="w-14 h-10 rounded-md object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 flex items-center justify-center bg-[#daeef1] text-white rounded-full ">
-            <img
-              src={PropertyRow}
-              alt="property"
-              style={{
-                width: "50%",
-                height: "50%",
-                objectFit: "cover",
-              }}
-            />
-          </div>
-        );
-      },
+      title: "Type",
+      dataIndex: "markerType",
+      loader: <Loader.TableRowLoader />,
+      render: (type) => (
+        <span className="capitalize font-medium text-gray-700">{type}</span>
+      ),
     },
     {
-      title: "NAME",
-      dataIndex: "propertyName",
+      title: "Place",
+      dataIndex: "placeName",
       loader: <Loader.TableRowLoader />,
-      render: (_, record) => {
-        const { propertyName, status } = record;
+      render: (placeName, record) => (
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-gray-800">
+            {placeName}
+          </span>
+          <span className="text-xs text-gray-500">{record.markerLabel}</span>
+        </div>
+      ),
+    },
+    {
+      title: "Party Time",
+      dataIndex: "partyTime",
+      loader: <Loader.TableRowLoader />,
+      render: (time) => {
+        const colors = {
+          day: "bg-yellow-200 text-yellow-800",
+          noon: "bg-blue-200 text-blue-800",
+          evening: "bg-purple-200 text-purple-800",
+          night: "bg-gray-800 text-white",
+        };
         return (
-          <div
-            onClick={() =>
-              status !== "draft"
-                ? navigate(`/properties/${record._id}`)
-                : hanldeDraftOpen(record._id)
-            }
-            className="cursor-pointer"
+          <span
+            className={`capitalize px-3 py-1 rounded-full text-xs font-semibold ${
+              colors[time] || "bg-gray-200 text-gray-700"
+            }`}
           >
-            {propertyName}
-          </div>
+            {time}
+          </span>
         );
       },
     },
     {
-      title: "UNITS",
-      dataIndex: "numberOfUnits",
+      title: "Latitude",
+      dataIndex: "latitude",
       loader: <Loader.TableRowLoader />,
-      render: (_, record) => {
-        const { units } = record;
-        return (
-          <div>
-            {units !== "Not applicable" ? (
-              <>
-                <span className="text-secondary">
-                  {units?.totalOccupiedUnits} (Occupied)
-                </span>{" "}
-                -{" "}
-                <span className="text-alpha">
-                  {units?.totalVacantUnits} (Vacant)
-                </span>
-              </>
-            ) : (
-              <div className="rounded-2xl text-center py-1 bg-red-200 px-5 w-36 ">
-                {units}
-              </div>
-            )}
-          </div>
-        );
-      },
+      render: (lat) => <span className="text-sm text-gray-700">{lat}</span>,
     },
     {
-      title: "TYPES",
-      dataIndex: "propertyType",
+      title: "Longitude",
+      dataIndex: "longitude",
       loader: <Loader.TableRowLoader />,
-      render: (propertyType) => (
-        <>
-          <Components.PropertyTypes typeName={propertyType} />
-        </>
+      render: (lng) => <span className="text-sm text-gray-700">{lng}</span>,
+    },
+    {
+      title: "Label",
+      dataIndex: "markerLabel",
+      loader: <Loader.TableRowLoader />,
+      render: (label) => (
+        <span className="text-sm font-medium text-indigo-600">{label}</span>
       ),
     },
-    {
-      title: "ADDRESS",
-      dataIndex: "address",
-      loader: <Loader.TableRowLoader />,
-      render: (_, record) => {
-        const { streetAddress, city, state, zipCode, addressTwo } =
-          record?.address;
-        return !streetAddress ? (
-          <div>N/A</div>
-        ) : (
-          <Components.AddressFormate
-            address={streetAddress}
-            city={city}
-            state={state}
-            zip={zipCode}
-            addressTwo={addressTwo}
-          />
-        );
-      },
-    },
-    {
-      title: <div className="flex gap-2 items-center">STATUS</div>,
-      dataIndex: "status",
-      loader: <Loader.TableRowLoader />,
-      render: (status) => (
-        <>
-          <div className="text-[0.8em] 2xl:text-[1em] font-semibold flex ">
-            {status === "draft" ? (
-              <div className="rounded-2xl text-center py-1 bg-[#f3f7fb] px-5">
-                <span className="text-gray-600">Draft</span>
-              </div>
-            ) : status === "active" ? (
-              <div className="rounded-2xl text-center py-1 bg-green-200 px-5">
-                <span className="text-green-700">Active</span>
-              </div>
-            ) : (
-              <div className="rounded-2xl text-center py-1 bg-red-200 px-5">
-                <span className="text-red-700">Inactive</span>
-              </div>
-            )}
-          </div>
-        </>
-      ),
-    },
-    {
-      title: "",
-      dataIndex: "action",
-      loader: <Loader.TableActionLoader />,
-      render: (_, record) => (
-        <Space size="middle" className="flex justify-center">
-          <Components.DropDownMenu
-            menuItems={markersOptions}
-            onMenuClick={(actionKey) => handleMenuClick(actionKey, record)}
-          />
-        </Space>
-      ),
-    },
+    // {
+    //   title: "",
+    //   dataIndex: "action",
+    //   loader: <Loader.TableActionLoader />,
+    //   render: (_, record) => (
+    //     <Space size="middle" className="flex justify-center">
+    //       <Components.DropDownMenu
+    //         menuItems={markersOptions}
+    //         onMenuClick={(actionKey) => handleMenuClick(actionKey, record)}
+    //       />
+    //     </Space>
+    //   ),
+    // },
   ];
 
   return (
@@ -284,8 +224,8 @@ const MapManagement = () => {
             <div className="flex gap-5 items-center w-full xl:w-1/2 ">
               <div id="step5" className="w-full xl:w-[400px]">
                 <SearchField
-                  mobilePlaceholder="Search by Name or Address"
-                  placeholder="Search by Name or Address"
+                  mobilePlaceholder="Search by Type, Place, Time or Label"
+                  placeholder="Search by Type, Place, Time or Label"
                   value={search}
                   onChange={handleSearchChange}
                 />
@@ -322,15 +262,6 @@ const MapManagement = () => {
                 </div>
               )}
               <div className="flex items-center gap-4">
-                <div
-                  id="step2"
-                  className="text-primary text-sm hover:text-secondary font-semibold flex items-center cursor-pointer"
-                  onClick={() =>
-                    !filter.isDraft ? handleFilter("isDraft", true) : {}
-                  }
-                >
-                  Drafts
-                </div>
                 <div id="step1">
                   <TableAddButton
                     onClick={() => {}}
@@ -357,7 +288,7 @@ const MapManagement = () => {
                   (col) => col.dataIndex === column.dataIndex && col.visible
                 )
             )}
-            dataSource={data?.properties}
+            dataSource={data?.data || []}
             pagination={true}
             rowSelection={rowSelection}
             pageLimit={filter.limit}

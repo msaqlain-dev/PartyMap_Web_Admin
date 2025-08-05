@@ -1,22 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-const defaultConfig = require("tailwindcss/defaultConfig");
 
+/** @type {import('tailwindcss').Config} */
 module.exports = {
-  ...defaultConfig,
-  // darkMode: ["class"],
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./index.html",
+        "./src/**/*.{js,ts,jsx,tsx}","./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
-    ...defaultConfig.theme,
     extend: {
       screens: {
-        xs: "480px", // Adding xs screen for 480px
-        lgPlus: "1200px", // 1200px screen
+        xs: "480px",
+        lgPlus: "1200px",
       },
       colors: {
-        primary: "#1467B0",
-        secondary: "#1996A6",
+        primary: "#E10098",
+        secondary: "#202020",
         alpha: "#FAB54E",
-        // secondary:"#83cdff"
       },
       backgroundColor: {
         bgprimary: "#181818",
@@ -24,5 +21,5 @@ module.exports = {
       },
     },
   },
-  plugins: [...defaultConfig.plugins, require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate")],
 };

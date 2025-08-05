@@ -46,7 +46,7 @@ const CustomerManagement = () => {
             Manage customer accounts and subscription plans.
           </p>
         </div>
-        <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-600">
+        <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary">
           Add Customer
         </button>
       </div>
@@ -195,7 +195,7 @@ const CustomerManagement = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button
                       onClick={() => setSelectedCustomer(customer)}
-                      className="text-primary-600 hover:text-primary-900 mr-3"
+                      className="text-primary hover:text-primary mr-3"
                     >
                       View
                     </button>
@@ -314,7 +314,7 @@ const CustomerManagement = () => {
                 >
                   Close
                 </button>
-                <button className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-600">
+                <button className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary">
                   Edit Customer
                 </button>
               </div>

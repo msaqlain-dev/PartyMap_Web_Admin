@@ -1,5 +1,6 @@
 "use client";
 
+import { Bell } from "../assets/icons";
 import useAuthStore from "../store/authStore";
 import useDataStore from "../store/dataStore";
 import useUIStore from "../store/uiStore";
@@ -64,31 +65,6 @@ const Topbar = () => {
                 />
               </svg>
             </button>
-
-            <div className="hidden md:block">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search maps, customers..."
-                  className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg
-                    className="w-5 h-5 text-gray-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right side - Actions */}
@@ -99,22 +75,9 @@ const Topbar = () => {
                 onClick={handleNotificationClick}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full relative"
               >
-                <span className="sr-only">View notifications</span>
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 17h5l-5 5v-5zM10.07 2.82l3.93 3.93-3.93 3.93-3.93-3.93 3.93-3.93z"
-                  />
-                </svg>
+                <Bell />
                 {unreadNotifications.length > 0 && (
-                  <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-400 ring-2 ring-white"></span>
+                  <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-400 ring-2 ring-white text-white">{unreadNotifications.length}</span>
                 )}
               </button>
 
@@ -144,7 +107,7 @@ const Topbar = () => {
                     <div className="px-4 py-2 border-t border-gray-200">
                       <button
                         onClick={handleViewAllNotifications}
-                        className="text-sm text-primary-600 hover:text-primary-800"
+                        className="text-sm text-primary hover:text-primary"
                       >
                         View all notifications
                       </button>

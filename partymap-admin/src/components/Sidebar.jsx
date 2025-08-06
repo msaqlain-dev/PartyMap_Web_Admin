@@ -29,7 +29,7 @@ const Sidebar = () => {
         <div className="flex flex-col w-64">
           <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
-              <img src={partyMapBranding} alt="" />
+              <img src={partyMapBranding} width={200} alt="" />
             </div>
             <nav className="mt-8 flex-1 px-2 space-y-1">
               {menuItems.map((item) => (

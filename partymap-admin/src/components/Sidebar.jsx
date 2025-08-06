@@ -1,18 +1,17 @@
-"use client";
-
 import { Link, useLocation } from "react-router-dom";
 import useUIStore from "../store/uiStore";
 import { partyMapBranding } from "../assets/images";
+import { DashboardIcon, MarkerIcon, GrowthIcon, SettingIcon } from "../assets/icons";
 
 const Sidebar = () => {
   const location = useLocation();
   const { sidebarOpen, setSidebarOpen } = useUIStore();
 
   const menuItems = [
-    { name: "Dashboard", path: "/", icon: "📊" },
-    { name: "Map Management", path: "/map-management", icon: "🗺️" },
-    { name: "Customer Management", path: "/customers", icon: "👥" },
-    { name: "Settings", path: "/settings", icon: "⚙️" },
+    { name: "Dashboard", path: "/", icon: <DashboardIcon /> },
+    { name: "Markers", path: "/markers", icon: <MarkerIcon /> },
+    { name: "Customers", path: "/customers", icon: <GrowthIcon /> },
+    { name: "Settings", path: "/settings", icon: <SettingIcon /> },
   ];
 
   const isActive = (path) => {
@@ -39,7 +38,7 @@ const Sidebar = () => {
                   to={item.path}
                   className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors duration-150 ${
                     isActive(item.path)
-                      ? "bg-primary text-primary"
+                      ? "bg-primary text-white"
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   }`}
                 >

@@ -5,10 +5,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import MapManagement from "./pages/MapManagement";
 import CustomerManagement from "./pages/CustomerManagement";
 import Settings from "./pages/Settings";
 import useAuthStore from "./store/authStore";
+import AddMarker from "./pages/markers/AddMarkers";
+import Markers from "./pages/markers/Markers";
 
 function App() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);
@@ -23,7 +24,13 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/map-management" element={<MapManagement />} />
+
+            {/*Markers Routes  */}
+            <Route path="/markers" element={<Markers />} />
+            <Route path="/markers/add" element={<AddMarker />} />
+            {/* <Route path="/markers/edit/:id" element={<EditMarker />} />
+            <Route path="/markers/view/:id" element={<ViewMarker />} /> */}
+
             <Route path="/customers" element={<CustomerManagement />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>

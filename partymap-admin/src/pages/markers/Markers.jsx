@@ -3,19 +3,19 @@ import {
   CustomTable,
   SearchField,
   TableCustomizeColumnMenu,
-} from "../components";
-import { MarkersTableColumn } from "../content/TableCustomizeColumnData";
-import { MarkersDefaultFilter } from "../content/DefaultFilters";
+} from "../../components";
+import { MarkersTableColumn } from "../../content/TableCustomizeColumnData";
+import { MarkersDefaultFilter } from "../../content/DefaultFilters";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import useFetch from "../hooks/useFetch";
-import { debounce } from "../utils";
-import { markersOptions } from "../content/DropDownData";
-import * as Loader from "../components/Loaders";
-import TableAddButton from "../components/TableAddButton";
+import useFetch from "../../hooks/useFetch";
+import { debounce } from "../../utils";
+import { markersOptions } from "../../content/DropDownData";
+import * as Loader from "../../components/Loaders";
+import TableAddButton from "../../components/TableAddButton";
 import { Space } from "antd";
 
-const MapManagement = () => {
+const Markers = () => {
   const [checkedTableMenuColumn, setCheckedTableMenuColumn] =
     useState(MarkersTableColumn);
   const [propertyNameToDelete, setPropertyNameToDelete] = useState("");
@@ -325,4 +325,4 @@ const MapManagement = () => {
   );
 };
 
-export default MapManagement;
+export default Markers;

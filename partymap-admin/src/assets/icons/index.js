@@ -1,2 +1,6 @@
 export { default as PlusIcon } from "./PlusMini"
-export { default as Bell } from "./Bell"
+export { default as BellIcon } from "./Bell"
+export { default as DashboardIcon } from "./Dashboard"
+export { default as MarkerIcon } from "./Marker"
+export { default as GrowthIcon } from "./Growth"
+export { default as SettingIcon } from "./Setting"

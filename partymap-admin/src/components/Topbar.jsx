@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell } from "../assets/icons";
+import { BellIcon } from "../assets/icons";
 import useAuthStore from "../store/authStore";
 import useDataStore from "../store/dataStore";
 import useUIStore from "../store/uiStore";
@@ -75,7 +75,7 @@ const Topbar = () => {
                 onClick={handleNotificationClick}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full relative"
               >
-                <Bell />
+                <BellIcon />
                 {unreadNotifications.length > 0 && (
                   <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-red-400 ring-2 ring-white text-white">{unreadNotifications.length}</span>
                 )}

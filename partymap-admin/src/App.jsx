@@ -8,8 +8,8 @@ import Dashboard from "./pages/Dashboard";
 import CustomerManagement from "./pages/CustomerManagement";
 import Settings from "./pages/Settings";
 import useAuthStore from "./store/authStore";
-import AddMarker from "./pages/markers/AddMarkers";
 import Markers from "./pages/markers/Markers";
+import AddMarker from "./pages/markers/AddMarker";
 
 function App() {
   const initializeAuth = useAuthStore((state) => state.initializeAuth);

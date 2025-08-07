@@ -49,8 +49,6 @@ export default function AddMarker() {
     { label: "Party", value: "party" },
     { label: "Bar", value: "bar" },
     { label: "Restaurant", value: "restaurant" },
-    { label: "Club", value: "club" },
-    { label: "Event Hall", value: "event_hall" },
   ];
 
   const partyTimeOptions = [
@@ -88,7 +86,7 @@ export default function AddMarker() {
       }
 
       // Add files
-      if (values.partyIcon?.[0]?.originFileObj) {
+      if (values.partyIcon?.originFileObj) {
         formData.append("partyIcon", values.partyIcon[0].originFileObj);
       }
       if (values.placeImage?.[0]?.originFileObj) {

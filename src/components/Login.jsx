@@ -59,7 +59,7 @@ const Login = () => {
               <div className="inline-flex items-center justify-center w-80 my-5">
                 <img src={partyMapBranding} alt="" />
               </div>
-              <Title level={1} className="text-primary mb-2">
+              <Title level={1} className="mb-2">
                 Admin Portal
               </Title>
               <Text className="text-gray-600 text-lg">

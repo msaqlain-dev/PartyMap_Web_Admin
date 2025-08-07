@@ -17,7 +17,6 @@ import {
   EyeTwoTone,
   InboxOutlined,
   UploadOutlined,
-  PlusOutlined,
 } from "@ant-design/icons";
 
 const { TextArea: AntTextArea } = AntInput;

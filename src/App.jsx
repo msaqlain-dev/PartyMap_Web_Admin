@@ -10,6 +10,7 @@ import Settings from "./pages/Settings";
 import Markers from "./pages/markers/Markers";
 import AddMarker from "./pages/markers/AddMarker";
 import EditMarker from "./pages/markers/EditMarker";
+import ViewMarker from "./pages/markers/ViewMarker";
 
 // Ant Design theme configuration
 const antdTheme = {
@@ -58,6 +59,7 @@ function App() {
               <Route path="/markers" element={<Markers />} />
               <Route path="/markers/add" element={<AddMarker />} />
               <Route path="/markers/edit/:id" element={<EditMarker />} />
+              <Route path="/markers/view/:id" element={<ViewMarker />} />
 
               <Route path="/customers" element={<CustomerManagement />} />
               <Route path="/settings" element={<Settings />} />

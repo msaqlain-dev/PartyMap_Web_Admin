@@ -24,7 +24,7 @@ const useAuthStore = create(
         set({ loading: true, error: null });
 
         try {
-          const response = await apiClient.post("/auth/login", {
+          const response = await apiClient.post("/auth/admin/login", {
             email,
             password,
             role: "admin",

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import apiClient from "../config/api";
 
 const useAuthStore = create(
   persist(
@@ -7,8 +8,10 @@ const useAuthStore = create(
       // State
       isAuthenticated: false,
       user: null,
+      token: null,
       loading: false,
       error: null,
+      initialized: false,
 
       // Actions
       setLoading: (loading) => set({ loading }),
@@ -21,39 +24,34 @@ const useAuthStore = create(
         set({ loading: true, error: null });
 
         try {
-          // Simulate API call
-          await new Promise((resolve, reject) => {
-            setTimeout(() => {
-              // Demo credentials
-              if (email === "admin@mapportal.com" && password === "admin123") {
-                const userData = {
-                  id: 1,
-                  name: "Admin User",
-                  email: "admin@mapportal.com",
-                  role: "Administrator",
-                };
-                resolve(userData);
-              } else {
-                reject(new Error("Invalid credentials"));
-              }
-            }, 1000);
-          }).then((userData) => {
-            set({
-              isAuthenticated: true,
-              user: userData,
-              loading: false,
-              error: null,
-            });
-            return { success: true };
+          const response = await apiClient.post("/auth/login", {
+            email,
+            password,
+            role: "admin",
           });
+
+          const { token, user } = response.data;
+
+          set({
+            isAuthenticated: true,
+            user,
+            token,
+            loading: false,
+            error: null,
+            initialized: true,
+          });
+
+          return { success: true };
         } catch (error) {
+          const errorMessage = error.message || "Login failed";
           set({
             loading: false,
-            error: error.message || "Login failed",
+            error: errorMessage,
             isAuthenticated: false,
             user: null,
+            token: null,
           });
-          throw error;
+          throw new Error(errorMessage);
         }
       },
 
@@ -61,44 +59,51 @@ const useAuthStore = create(
         set({
           isAuthenticated: false,
           user: null,
+          token: null,
           loading: false,
           error: null,
+          initialized: true,
         });
+        // Clear persisted storage
+        localStorage.removeItem("auth-storage");
       },
 
-      // Initialize auth state from storage
+      // Initialize auth state - simplified to prevent infinite loops
       initializeAuth: () => {
-        const token = localStorage.getItem("adminToken");
-        const userData = localStorage.getItem("adminUser");
+        const state = get();
 
-        if (token && userData) {
-          try {
-            const user = JSON.parse(userData);
-            set({
-              isAuthenticated: true,
-              user,
-              loading: false,
-            });
-          } catch (error) {
-            // Clear invalid data
-            localStorage.removeItem("adminToken");
-            localStorage.removeItem("adminUser");
-            set({
-              isAuthenticated: false,
-              user: null,
-              loading: false,
-            });
-          }
+        // Only run once
+        if (state.initialized) {
+          return;
+        }
+
+        // Check if we have a valid token
+        if (state.token && state.user) {
+          set({
+            isAuthenticated: true,
+            initialized: true,
+            loading: false,
+          });
         } else {
-          set({ loading: false });
+          set({
+            isAuthenticated: false,
+            user: null,
+            token: null,
+            initialized: true,
+            loading: false,
+          });
         }
       },
+
+      // Check if auth is ready
+      isAuthReady: () => get().initialized,
     }),
     {
       name: "auth-storage",
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         user: state.user,
+        token: state.token,
       }),
     }
   )

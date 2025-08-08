@@ -1,43 +1,28 @@
 import apiClient from "../config/api";
 
+const multipartConfig = {
+  headers: { "Content-Type": "multipart/form-data" },
+};
+
 export const markerService = {
-  getMarkers: async (filters = {}) => {
-    const response = await apiClient.get("/markers", { params: filters });
-    return response.data;
-  },
+  getMarkers: (filters = {}) =>
+    apiClient.get("/markers", { params: filters }).then((res) => res.data),
 
-  getMarker: async (id) => {
-    const response = await apiClient.get(`/markers/${id}`);
-    return response.data;
-  },
+  getMarker: (id) => apiClient.get(`/markers/${id}`).then((res) => res.data),
 
-  createMarker: async (markerData) => {
-    const response = await apiClient.post("/markers", markerData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  },
+  createMarker: (markerData) =>
+    apiClient
+      .post("/markers", markerData, multipartConfig)
+      .then((res) => res.data),
 
-  updateMarker: async (id, markerData) => {
-    const response = await apiClient.put(`/markers/${id}`, markerData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    return response.data;
-  },
+  updateMarker: (id, markerData) =>
+    apiClient
+      .put(`/markers/${id}`, markerData, multipartConfig)
+      .then((res) => res.data),
 
-  deleteMarker: async (id) => {
-    const response = await apiClient.delete(`/markers/${id}`);
-    return response.data;
-  },
+  deleteMarker: (id) =>
+    apiClient.delete(`/markers/${id}`).then((res) => res.data),
 
-  deleteMarkers: async (ids) => {
-    const response = await apiClient.delete("/markers/bulk", {
-      data: { ids },
-    });
-    return response.data;
-  },
+  deleteMarkers: (ids) =>
+    apiClient.post("/markers/bulk-delete", { ids }).then((res) => res.data),
 };

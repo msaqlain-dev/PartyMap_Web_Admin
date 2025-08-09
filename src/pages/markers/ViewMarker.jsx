@@ -114,17 +114,6 @@ export default function ViewMarker() {
     return colors[time] || "#d9d9d9";
   };
 
-  const getPartyTimeIcon = (time) => {
-    const icons = {
-      morning: "🌅",
-      afternoon: "☀️",
-      evening: "🌆",
-      night: "🌙",
-      late_night: "🌃",
-    };
-    return icons[time] || "⏰";
-  };
-
   const getTotalTickets = () => {
     if (!marker?.tickets || !Array.isArray(marker.tickets)) return 0;
     return marker.tickets.reduce(
@@ -302,7 +291,6 @@ export default function ViewMarker() {
                   color={getPartyTimeColor(marker.partyTime)}
                   className="capitalize px-3 py-1 rounded-full border-0 font-medium"
                 >
-                  {getPartyTimeIcon(marker.partyTime)}{" "}
                   {marker.partyTime?.replace("_", " ")}
                 </Tag>
               </Space>

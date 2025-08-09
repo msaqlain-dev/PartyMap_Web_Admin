@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Formik, Form } from "formik";
 import {
-  Form,
   Button,
   Card,
   Row,
@@ -13,20 +13,22 @@ import {
 } from "antd";
 import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
 import {
-  Input,
-  Select,
-  TextArea,
-  Upload,
-  InputNumber,
-  validationRules,
+  FormikInput,
+  FormikSelect,
+  FormikTextArea,
+  FormikUpload,
+  FormikInputNumber,
 } from "../../components/forms";
-import apiClient from "../../config/api";
+import {
+  markerValidationSchema,
+  markerStepValidationSchemas,
+} from "../../validation/schemas";
+import { markerService } from "../../services/markerService";
 
 const { Title, Text } = Typography;
 
 export default function AddMarker() {
   const navigate = useNavigate();
-  const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -49,6 +51,8 @@ export default function AddMarker() {
     { label: "Party", value: "party" },
     { label: "Bar", value: "bar" },
     { label: "Restaurant", value: "restaurant" },
+    { label: "Club", value: "club" },
+    { label: "Event Hall", value: "event_hall" },
   ];
 
   const partyTimeOptions = [
@@ -59,7 +63,22 @@ export default function AddMarker() {
     { label: "Late Night (2 AM - 6 AM)", value: "late_night" },
   ];
 
-  const handleSubmit = async (values) => {
+  const initialValues = {
+    markerType: "party",
+    markerLabel: "",
+    latitude: "",
+    longitude: "",
+    placeName: "",
+    website: "",
+    partyDescription: "",
+    partyTime: "evening",
+    partyIcon: [],
+    placeImage: [],
+    partyImage: [],
+    tickets: Array(24).fill(0),
+  };
+
+  const handleFinalSubmit = async (values) => {
     setLoading(true);
     try {
       // Create FormData
@@ -72,7 +91,9 @@ export default function AddMarker() {
           key !== "partyIcon" &&
           key !== "placeImage" &&
           key !== "partyImage" &&
-          value !== undefined
+          value !== undefined &&
+          value !== null &&
+          value !== ""
         ) {
           formData.append(key, value);
         }
@@ -86,7 +107,7 @@ export default function AddMarker() {
       }
 
       // Add files
-      if (values.partyIcon?.originFileObj) {
+      if (values.partyIcon?.[0]?.originFileObj) {
         formData.append("partyIcon", values.partyIcon[0].originFileObj);
       }
       if (values.placeImage?.[0]?.originFileObj) {
@@ -96,13 +117,7 @@ export default function AddMarker() {
         formData.append("partyImage", values.partyImage[0].originFileObj);
       }
 
-      // Use apiClient for the request
-      await apiClient.post("/markers", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
+      await markerService.createMarker(formData);
       message.success("Marker added successfully!");
       navigate("/markers");
     } catch (error) {
@@ -113,22 +128,24 @@ export default function AddMarker() {
     }
   };
 
-  const handleNext = async () => {
+  const handleNext = async (validateForm, values) => {
+    const stepSchema = markerStepValidationSchemas[`step${currentStep + 1}`];
+
     try {
-      if (currentStep === 0) {
-        await form.validateFields([
-          "markerType",
-          "markerLabel",
-          "latitude",
-          "longitude",
-          "placeName",
-        ]);
-      } else if (currentStep === 1) {
-        // Media step - optional validation
+      if (stepSchema) {
+        await stepSchema.validate(values, { abortEarly: false });
       }
       setCurrentStep(currentStep + 1);
     } catch (error) {
-      message.error("Please fill in all required fields");
+      if (error.inner) {
+        // Yup validation errors
+        const errors = {};
+        error.inner.forEach((err) => {
+          errors[err.path] = err.message;
+        });
+        validateForm();
+      }
+      message.error("Please fill in all required fields correctly");
     }
   };
 
@@ -140,69 +157,52 @@ export default function AddMarker() {
     <Card>
       <Row gutter={[24, 16]}>
         <Col xs={24} md={12}>
-          <Select
-            label="Marker Type"
+          <FormikSelect
             name="markerType"
+            label="Marker Type"
             placeholder="Select marker type"
             options={markerTypeOptions}
-            rules={[validationRules.required("Please select marker type")]}
           />
         </Col>
 
         <Col xs={24} md={12}>
-          <Input
-            label="Marker Label"
+          <FormikInput
             name="markerLabel"
+            label="Marker Label"
             placeholder="Enter marker label"
-            rules={[validationRules.required("Please enter marker label")]}
           />
         </Col>
 
         <Col xs={24} md={12}>
-          <Input
-            label="Latitude"
+          <FormikInput
             name="latitude"
+            label="Latitude"
             placeholder="e.g., 40.7128"
-            rules={[
-              validationRules.required("Please enter latitude"),
-              validationRules.pattern(
-                /^-?([1-8]?[0-9]\.{1}\d{1,6}$|90\.{1}0{1,6}$)/,
-                "Invalid latitude format"
-              ),
-            ]}
           />
         </Col>
 
         <Col xs={24} md={12}>
-          <Input
-            label="Longitude"
+          <FormikInput
             name="longitude"
+            label="Longitude"
             placeholder="e.g., -74.0060"
-            rules={[
-              validationRules.required("Please enter longitude"),
-              validationRules.pattern(
-                /^-?([1-9]?[0-9]\.{1}\d{1,6}$|1[0-7][0-9]\.{1}\d{1,6}$|180\.{1}0{1,6}$)/,
-                "Invalid longitude format"
-              ),
-            ]}
           />
         </Col>
 
         <Col xs={24}>
-          <Input
-            label="Place Name"
+          <FormikInput
             name="placeName"
+            label="Place Name"
             placeholder="Enter place name"
-            rules={[validationRules.required("Please enter place name")]}
           />
         </Col>
 
         <Col xs={24}>
-          <Input
-            label="Website URL"
+          <FormikInput
             name="website"
+            label="Website URL"
             placeholder="https://example.com"
-            rules={[validationRules.url("Please enter a valid URL")]}
+            type="url"
           />
         </Col>
       </Row>
@@ -213,9 +213,9 @@ export default function AddMarker() {
     <Card>
       <Row gutter={[24, 24]}>
         <Col xs={24} md={8}>
-          <Upload
-            label="Party Icon"
+          <FormikUpload
             name="partyIcon"
+            label="Party Icon"
             accept="image/*"
             maxCount={1}
             uploadType="drag"
@@ -225,9 +225,9 @@ export default function AddMarker() {
         </Col>
 
         <Col xs={24} md={8}>
-          <Upload
-            label="Place Image"
+          <FormikUpload
             name="placeImage"
+            label="Place Image"
             accept="image/*"
             maxCount={1}
             uploadType="drag"
@@ -237,9 +237,9 @@ export default function AddMarker() {
         </Col>
 
         <Col xs={24} md={8}>
-          <Upload
-            label="Party Image"
+          <FormikUpload
             name="partyImage"
+            label="Party Image"
             accept="image/*"
             maxCount={1}
             uploadType="drag"
@@ -256,18 +256,18 @@ export default function AddMarker() {
       <Card title="Party Information">
         <Row gutter={[24, 16]}>
           <Col xs={24} md={12}>
-            <Select
-              label="Party Time"
+            <FormikSelect
               name="partyTime"
+              label="Party Time"
               placeholder="Select party time"
               options={partyTimeOptions}
             />
           </Col>
 
           <Col xs={24}>
-            <TextArea
-              label="Party Description"
+            <FormikTextArea
               name="partyDescription"
+              label="Party Description"
               placeholder="Describe the party atmosphere, music, crowd, special features..."
               rows={4}
               maxLength={500}
@@ -290,9 +290,9 @@ export default function AddMarker() {
 
             return (
               <Col xs={12} sm={8} md={6} lg={4} key={i}>
-                <InputNumber
+                <FormikInputNumber
+                  name={`tickets.${i}`}
                   label={timeLabel}
-                  name={["tickets", i]}
                   min={0}
                   max={9999}
                   placeholder="0"
@@ -343,50 +343,54 @@ export default function AddMarker() {
         <Steps current={currentStep} items={steps} className="mb-6" />
       </Card>
 
-      {/* Form */}
-      <Form
-        form={form}
-        layout="vertical"
-        onFinish={handleSubmit}
-        initialValues={{
-          markerType: "party",
-          partyTime: "evening",
-          tickets: Array(24).fill(0),
-        }}
+      {/* Formik Form */}
+      <Formik
+        initialValues={initialValues}
+        validationSchema={markerValidationSchema}
+        onSubmit={() => {}} // Empty onSubmit to prevent auto-submission
+        enableReinitialize
       >
-        {renderStepContent()}
+        {({ values, errors, touched, validateForm, isSubmitting }) => (
+          <div>
+            {renderStepContent()}
 
-        {/* Navigation Buttons */}
-        <Card className="mt-6">
-          <div className="flex justify-between">
-            <div>
-              {currentStep > 0 && (
-                <Button size="large" onClick={handlePrev}>
-                  Previous
-                </Button>
-              )}
-            </div>
+            {/* Navigation Buttons */}
+            <Card className="mt-6">
+              <div className="flex justify-between">
+                <div>
+                  {currentStep > 0 && (
+                    <Button size="large" onClick={handlePrev}>
+                      Previous
+                    </Button>
+                  )}
+                </div>
 
-            <Space>
-              {currentStep < steps.length - 1 ? (
-                <Button type="primary" size="large" onClick={handleNext}>
-                  Next
-                </Button>
-              ) : (
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<SaveOutlined />}
-                  loading={loading}
-                  htmlType="submit"
-                >
-                  Create Marker
-                </Button>
-              )}
-            </Space>
+                <Space>
+                  {currentStep < steps.length - 1 ? (
+                    <Button
+                      type="primary"
+                      size="large"
+                      onClick={() => handleNext(validateForm, values)}
+                    >
+                      Next
+                    </Button>
+                  ) : (
+                    <Button
+                      type="primary"
+                      size="large"
+                      icon={<SaveOutlined />}
+                      loading={loading}
+                      onClick={() => handleFinalSubmit(values)}
+                    >
+                      Create Marker
+                    </Button>
+                  )}
+                </Space>
+              </div>
+            </Card>
           </div>
-        </Card>
-      </Form>
+        )}
+      </Formik>
     </div>
   );
 }

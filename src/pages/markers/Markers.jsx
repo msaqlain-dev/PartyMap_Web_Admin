@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, Fragment, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Space,
@@ -6,32 +6,41 @@ import {
   Modal,
   message,
   Tag,
-  Tooltip,
   Typography,
   Card,
   Row,
   Col,
   Statistic,
+  Table,
+  Dropdown,
 } from "antd";
 import {
   PlusOutlined,
   ExclamationCircleOutlined,
   DeleteOutlined,
+  MoreOutlined,
+  EyeOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import {
   CustomTable,
   SearchField,
   TableCustomizeColumnMenu,
 } from "../../components";
-import DropDownMenu from "../../components/DropDownMenu";
 import { MarkersTableColumn } from "../../content/TableCustomizeColumnData";
 import { MarkersDefaultFilter } from "../../content/DefaultFilters";
-import { markersOptions } from "../../content/DropDownData";
 import { markerService } from "../../services/markerService";
 import * as Loader from "../../components/Loaders";
-import { calculateMarkerStats, createDebouncedCallback, formatCoordinate, getMarkerTypeColor, getPartyTimeColor, handleApiError } from "../../utils";
+import {
+  calculateMarkerStats,
+  createDebouncedCallback,
+  formatCoordinate,
+  getMarkerTypeColor,
+  getPartyTimeColor,
+  handleApiError,
+} from "../../utils";
+
 const { Title, Text } = Typography;
-const { confirm } = Modal;
 
 const Markers = () => {
   const [checkedTableMenuColumn, setCheckedTableMenuColumn] =
@@ -41,6 +50,7 @@ const Markers = () => {
   const [search, setSearch] = useState("");
   const [data, setData] = useState({ data: [], metaData: {} });
   const [loading, setLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -48,6 +58,11 @@ const Markers = () => {
     bar: 0,
     restaurant: 0,
   });
+
+  // Modal state for delete confirmations
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [bulkDeleteModalVisible, setBulkDeleteModalVisible] = useState(false);
+  const [markerToDelete, setMarkerToDelete] = useState(null);
 
   const navigate = useNavigate();
 
@@ -97,73 +112,123 @@ const Markers = () => {
     setSelectedRowKeys([]);
   };
 
-  // Handle menu actions
-  const handleMenuClick = (key, record) => {
-    switch (key) {
-      case "view":
-        navigate(`/markers/view/${record._id}`);
-        break;
-      case "edit":
-        navigate(`/markers/edit/${record._id}`);
-        break;
-      case "delete":
-        handleDeleteSingle(record);
-        break;
-      default:
-        break;
-    }
-  };
-
-  // Handle single delete
-  const handleDeleteSingle = (record) => {
-    confirm({
-      title: "Delete Marker",
-      icon: <ExclamationCircleOutlined />,
-      content: `Are you sure you want to delete "${record.placeName}"? This action cannot be undone.`,
-      okText: "Delete",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: () => deleteMarker(record._id),
-    });
-  };
-
-  // Handle bulk delete
-  const handleBulkDelete = () => {
-    if (selectedRowKeys.length === 0) return;
-
-    confirm({
-      title: "Delete Selected Markers",
-      icon: <ExclamationCircleOutlined />,
-      content: `Are you sure you want to delete ${selectedRowKeys.length} selected marker(s)? This action cannot be undone.`,
-      okText: "Delete All",
-      okType: "danger",
-      cancelText: "Cancel",
-      onOk: () => deleteMarkers(selectedRowKeys),
-    });
-  };
-
   // Delete single marker
   const deleteMarker = async (id) => {
+    console.log("deleteMarker called with id:", id);
+    setDeleteLoading(true);
     try {
-      await markerService.deleteMarker(id);
+      console.log("Calling markerService.deleteMarker...");
+      const result = await markerService.deleteMarker(id);
+      console.log("Delete result:", result);
       message.success("Marker deleted successfully");
       fetchMarkers();
+      setSelectedRowKeys([]);
     } catch (error) {
+      console.error("Delete error:", error);
       message.error(handleApiError(error));
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
   // Delete multiple markers
   const deleteMarkers = async (ids) => {
+    console.log("deleteMarkers called with ids:", ids);
+    setDeleteLoading(true);
     try {
-      await markerService.deleteMarkers(ids);
+      console.log("Calling markerService.deleteMarkers...");
+      const result = await markerService.deleteMarkers(ids);
+      console.log("Bulk delete result:", result);
       message.success(`${ids.length} marker(s) deleted successfully`);
       setSelectedRowKeys([]);
       fetchMarkers();
     } catch (error) {
+      console.error("Bulk delete error:", error);
       message.error(handleApiError(error));
+    } finally {
+      setDeleteLoading(false);
     }
   };
+
+  // Simple action handlers for debugging
+  const handleView = (record) => {
+    console.log("View clicked for:", record);
+    navigate(`/markers/view/${record._id}`);
+  };
+
+  const handleEdit = (record) => {
+    console.log("Edit clicked for:", record);
+    navigate(`/markers/edit/${record._id}`);
+  };
+
+  const handleDelete = (record) => {
+    console.log("Delete clicked for:", record);
+    setMarkerToDelete(record);
+    setDeleteModalVisible(true);
+  };
+
+  // Handle single delete
+  const handleDeleteSingle = () => {
+    console.log("handleDeleteSingle called with:", markerToDelete);
+    if (markerToDelete) {
+      deleteMarker(markerToDelete._id);
+      setDeleteModalVisible(false);
+      setMarkerToDelete(null);
+    }
+  };
+
+  // Handle bulk delete
+  const handleBulkDelete = () => {
+    console.log("handleBulkDelete called, selectedRowKeys:", selectedRowKeys);
+
+    if (selectedRowKeys.length === 0) {
+      message.warning("Please select markers to delete");
+      return;
+    }
+
+    setBulkDeleteModalVisible(true);
+  };
+
+  // Confirm bulk delete
+  const confirmBulkDelete = () => {
+    console.log("Bulk delete confirmed for:", selectedRowKeys);
+    deleteMarkers(selectedRowKeys);
+    setBulkDeleteModalVisible(false);
+  };
+
+  // Create dropdown menu items
+  const getDropdownItems = (record) => [
+    {
+      key: "view",
+      label: (
+        <div className="flex items-center gap-2">
+          <EyeOutlined />
+          <span>View Details</span>
+        </div>
+      ),
+      onClick: () => handleView(record),
+    },
+    {
+      key: "edit",
+      label: (
+        <div className="flex items-center gap-2">
+          <EditOutlined />
+          <span>Edit Marker</span>
+        </div>
+      ),
+      onClick: () => handleEdit(record),
+    },
+    {
+      key: "delete",
+      label: (
+        <div className="flex items-center gap-2 text-red-500">
+          <DeleteOutlined />
+          <span>Delete</span>
+        </div>
+      ),
+      onClick: () => handleDelete(record),
+    },
+  ];
 
   // Row selection
   const onRowSelectionChange = (selectedKeys) => {
@@ -173,6 +238,11 @@ const Markers = () => {
   const rowSelection = {
     selectedRowKeys,
     onChange: onRowSelectionChange,
+    selections: [
+      Table.SELECTION_ALL,
+      Table.SELECTION_INVERT,
+      Table.SELECTION_NONE,
+    ],
   };
 
   // Search functionality using utility
@@ -184,25 +254,6 @@ const Markers = () => {
     }));
   }, []);
 
-  // useEffect(() => {
-  //   // Clear existing timeout
-  //   if (debouncedSearchRef.current) {
-  //     debouncedSearchRef.current.cancel();
-  //   }
-
-  //   // Create new debounced function
-  //   debouncedSearchRef.current = createDebouncedCallback(performSearch, 500);
-
-  //   // Execute debounced search
-  //   debouncedSearchRef.current(search);
-
-  //   // Cleanup
-  //   return () => {
-  //     if (debouncedSearchRef.current) {
-  //       debouncedSearchRef.current.cancel();
-  //     }
-  //   };
-  // }, [search, performSearch]);
   const debouncedSearch = useMemo(
     () => createDebouncedCallback(performSearch, 500),
     [performSearch]
@@ -246,7 +297,7 @@ const Markers = () => {
           <span className="text-sm font-semibold text-gray-800">
             {placeName}
           </span>
-          <span className="text-xs text-gray-500">{record.markerLabel}</span>
+          <span className="text-xs text-gray-500">Label: {record.markerLabel}</span>
         </div>
       ),
     },
@@ -288,22 +339,26 @@ const Markers = () => {
       ),
     },
     {
-      title: "Actions",
       dataIndex: "action",
       loader: <Loader.TableActionLoader />,
       render: (_, record) => (
-        <DropDownMenu
-          menuItems={markersOptions}
-          onMenuClick={(actionKey) => handleMenuClick(actionKey, record)}
-          color="#666666"
-          className="dropdown-trigger"
-        />
+        <Dropdown
+          menu={{ items: getDropdownItems(record) }}
+          trigger={["click"]}
+          placement="bottomRight"
+        >
+          <Button
+            type="text"
+            icon={<MoreOutlined />}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </Dropdown>
       ),
     },
   ];
 
   return (
-    <Fragment>
+    <div className="p-6">
       {/* Page Header */}
       <div className="mb-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
@@ -412,7 +467,14 @@ const Markers = () => {
                 type="primary"
                 danger
                 icon={<DeleteOutlined />}
-                onClick={handleBulkDelete}
+                onClick={() => {
+                  console.log(
+                    "Bulk delete button clicked, selectedRowKeys:",
+                    selectedRowKeys
+                  );
+                  handleBulkDelete();
+                }}
+                loading={deleteLoading}
                 className="h-10 px-4 rounded-lg"
               >
                 Delete Selected ({selectedRowKeys.length})
@@ -456,7 +518,67 @@ const Markers = () => {
           />
         </div>
       </Card>
-    </Fragment>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        title="Delete Marker"
+        open={deleteModalVisible}
+        onOk={handleDeleteSingle}
+        onCancel={() => {
+          setDeleteModalVisible(false);
+          setMarkerToDelete(null);
+        }}
+        okText="Delete"
+        cancelText="Cancel"
+        okButtonProps={{
+          danger: true,
+          loading: deleteLoading,
+        }}
+        confirmLoading={deleteLoading}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <ExclamationCircleOutlined className="text-orange-500 text-xl" />
+          <span>Are you sure you want to delete this marker?</span>
+        </div>
+        {markerToDelete && (
+          <div className="bg-gray-50 p-3 rounded-lg">
+            <div className="font-medium">{markerToDelete.placeName}</div>
+            <div className="text-sm text-gray-500">
+              {markerToDelete.markerLabel}
+            </div>
+          </div>
+        )}
+        <div className="mt-3 text-sm text-red-600">
+          This action cannot be undone.
+        </div>
+      </Modal>
+
+      {/* Bulk Delete Confirmation Modal */}
+      <Modal
+        title="Delete Selected Markers"
+        open={bulkDeleteModalVisible}
+        onOk={confirmBulkDelete}
+        onCancel={() => setBulkDeleteModalVisible(false)}
+        okText="Delete All"
+        cancelText="Cancel"
+        okButtonProps={{
+          danger: true,
+          loading: deleteLoading,
+        }}
+        confirmLoading={deleteLoading}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <ExclamationCircleOutlined className="text-orange-500 text-xl" />
+          <span>
+            Are you sure you want to delete {selectedRowKeys.length} selected
+            marker(s)?
+          </span>
+        </div>
+        <div className="text-sm text-red-600">
+          This action cannot be undone.
+        </div>
+      </Modal>
+    </div>
   );
 };
 

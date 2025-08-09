@@ -24,5 +24,5 @@ export const markerService = {
     apiClient.delete(`/markers/${id}`).then((res) => res.data),
 
   deleteMarkers: (ids) =>
-    apiClient.post("/markers/bulk-delete", { ids }).then((res) => res.data),
+    apiClient.post("/markers/delete-multiple", { ids }).then((res) => res.data),
 };

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Formik } from "formik";
 import {
-  Form,
   Button,
   Card,
   Row,
@@ -9,8 +9,8 @@ import {
   Space,
   Typography,
   message,
-  Alert,
   Spin,
+  Alert,
 } from "antd";
 import {
   SaveOutlined,
@@ -18,13 +18,13 @@ import {
   EditOutlined,
 } from "@ant-design/icons";
 import {
-  Input,
-  Select,
-  TextArea,
-  Upload,
-  InputNumber,
-  validationRules,
+  FormikInput,
+  FormikSelect,
+  FormikTextArea,
+  FormikUpload,
+  FormikInputNumber,
 } from "../../components/forms";
+import { markerValidationSchema } from "../../validation/schemas";
 import { markerService } from "../../services/markerService";
 
 const { Title, Text } = Typography;
@@ -32,10 +32,9 @@ const { Title, Text } = Typography;
 export default function EditMarker() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [form] = Form.useForm();
-  const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [initialValues, setInitialValues] = useState(null);
 
   const markerTypeOptions = [
     { label: "Party", value: "party" },
@@ -59,9 +58,12 @@ export default function EditMarker() {
         setInitialLoading(true);
         setError(null);
 
-        const data = await markerService.getMarker(id);
+        const res = await markerService.getMarker(id);
+        const data = res.data;
 
-        // Prepare form data
+        console.log("Fetched marker data: ", data);
+
+        // Prepare initial values for Formik
         const formData = {
           markerType: data.markerType || "party",
           markerLabel: data.markerLabel || "",
@@ -72,47 +74,69 @@ export default function EditMarker() {
           partyDescription: data.partyDescription || "",
           partyTime: data.partyTime || "evening",
           tickets: Array.from({ length: 24 }, (_, i) => {
-            const ticket = data.tickets?.find((t) => parseInt(t.hour) === i);
+            // Parse hour from ticket data more safely
+            const ticket = data.tickets?.find((t) => {
+              // Handle both string and number hour formats
+              let ticketHour;
+              if (typeof t.hour === "string") {
+                // Extract hour from string format like "10:00 AM"
+                const timeMatch = t.hour.match(/(\d+):00\s*(AM|PM)/i);
+                if (timeMatch) {
+                  ticketHour = parseInt(timeMatch[1]);
+                  if (
+                    timeMatch[2].toUpperCase() === "PM" &&
+                    ticketHour !== 12
+                  ) {
+                    ticketHour += 12;
+                  } else if (
+                    timeMatch[2].toUpperCase() === "AM" &&
+                    ticketHour === 12
+                  ) {
+                    ticketHour = 0;
+                  }
+                } else {
+                  ticketHour = parseInt(t.hour.replace(/[^\d]/g, ""));
+                }
+              } else {
+                ticketHour = parseInt(t.hour);
+              }
+              return ticketHour === i;
+            });
             return ticket ? ticket.availableTickets : 0;
           }),
+          partyIcon: data.partyIconUrl
+            ? [
+                {
+                  uid: "party-icon",
+                  name: "Party Icon",
+                  status: "done",
+                  url: data.partyIconUrl,
+                },
+              ]
+            : [],
+          placeImage: data.placeImageUrl
+            ? [
+                {
+                  uid: "place-image",
+                  name: "Place Image",
+                  status: "done",
+                  url: data.placeImageUrl,
+                },
+              ]
+            : [],
+          partyImage: data.partyImageUrl
+            ? [
+                {
+                  uid: "party-image",
+                  name: "Party Image",
+                  status: "done",
+                  url: data.partyImageUrl,
+                },
+              ]
+            : [],
         };
 
-        // Set existing images if available
-        if (data.partyIconUrl) {
-          formData.partyIcon = [
-            {
-              uid: "party-icon",
-              name: "Party Icon",
-              status: "done",
-              url: data.partyIconUrl,
-            },
-          ];
-        }
-
-        if (data.placeImageUrl) {
-          formData.placeImage = [
-            {
-              uid: "place-image",
-              name: "Place Image",
-              status: "done",
-              url: data.placeImageUrl,
-            },
-          ];
-        }
-
-        if (data.partyImageUrl) {
-          formData.partyImage = [
-            {
-              uid: "party-image",
-              name: "Party Image",
-              status: "done",
-              url: data.partyImageUrl,
-            },
-          ];
-        }
-
-        // Set form values
-        form.setFieldsValue(formData);
+        setInitialValues(formData);
       } catch (err) {
         console.error("Error fetching marker data:", err);
         setError(err.message || "Failed to load marker data");
@@ -125,10 +149,9 @@ export default function EditMarker() {
     if (id) {
       fetchMarkerData();
     }
-  }, [id, form]);
+  }, [id]);
 
   const handleSubmit = async (values) => {
-    setLoading(true);
     try {
       const formData = new FormData();
 
@@ -139,7 +162,9 @@ export default function EditMarker() {
           key !== "partyIcon" &&
           key !== "placeImage" &&
           key !== "partyImage" &&
-          value !== undefined
+          value !== undefined &&
+          value !== null &&
+          value !== ""
         ) {
           formData.append(key, value);
         }
@@ -164,14 +189,11 @@ export default function EditMarker() {
       }
 
       await markerService.updateMarker(id, formData);
-
       message.success("Marker updated successfully!");
       navigate("/markers");
     } catch (error) {
       console.error(error);
       message.error(error.message || "Error updating marker");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -214,6 +236,19 @@ export default function EditMarker() {
     );
   }
 
+  if (!initialValues) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <Alert
+          message="Marker Not Found"
+          description="The requested marker could not be found."
+          type="warning"
+          showIcon
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
@@ -233,212 +268,198 @@ export default function EditMarker() {
         <Text type="secondary">Update marker information and media files</Text>
       </div>
 
-      {/* Form */}
-      <Form form={form} layout="vertical" onFinish={handleSubmit} size="large">
-        <Row gutter={[24, 24]}>
-          {/* Basic Information */}
-          <Col xs={24}>
-            <Card title="Basic Information" className="mb-6">
-              <Row gutter={[24, 16]}>
-                <Col xs={24} md={12}>
-                  <Select
-                    label="Marker Type"
-                    name="markerType"
-                    placeholder="Select marker type"
-                    options={markerTypeOptions}
-                    rules={[
-                      validationRules.required("Please select marker type"),
-                    ]}
-                  />
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Input
-                    label="Marker Label"
-                    name="markerLabel"
-                    placeholder="Enter marker label"
-                    rules={[
-                      validationRules.required("Please enter marker label"),
-                    ]}
-                  />
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Input
-                    label="Latitude"
-                    name="latitude"
-                    placeholder="e.g., 40.7128"
-                    rules={[
-                      validationRules.required("Please enter latitude"),
-                      validationRules.pattern(
-                        /^-?([1-8]?[0-9]\.{1}\d{1,6}$|90\.{1}0{1,6}$)/,
-                        "Invalid latitude format"
-                      ),
-                    ]}
-                  />
-                </Col>
-
-                <Col xs={24} md={12}>
-                  <Input
-                    label="Longitude"
-                    name="longitude"
-                    placeholder="e.g., -74.0060"
-                    rules={[
-                      validationRules.required("Please enter longitude"),
-                      validationRules.pattern(
-                        /^-?([1-9]?[0-9]\.{1}\d{1,6}$|1[0-7][0-9]\.{1}\d{1,6}$|180\.{1}0{1,6}$)/,
-                        "Invalid longitude format"
-                      ),
-                    ]}
-                  />
-                </Col>
-
-                <Col xs={24}>
-                  <Input
-                    label="Place Name"
-                    name="placeName"
-                    placeholder="Enter place name"
-                    rules={[
-                      validationRules.required("Please enter place name"),
-                    ]}
-                  />
-                </Col>
-
-                <Col xs={24}>
-                  <Input
-                    label="Website URL"
-                    name="website"
-                    placeholder="https://example.com"
-                    rules={[validationRules.url("Please enter a valid URL")]}
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-
-          {/* Media Upload */}
-          <Col xs={24}>
-            <Card title="Media Files" className="mb-6">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} md={8}>
-                  <Upload
-                    label="Party Icon"
-                    name="partyIcon"
-                    accept="image/*"
-                    maxCount={1}
-                    uploadType="drag"
-                    dragText="Click or drag icon to upload"
-                    hint="PNG, JPG, SVG up to 2MB"
-                  />
-                </Col>
-
-                <Col xs={24} md={8}>
-                  <Upload
-                    label="Place Image"
-                    name="placeImage"
-                    accept="image/*"
-                    maxCount={1}
-                    uploadType="drag"
-                    dragText="Click or drag image to upload"
-                    hint="High quality venue photo"
-                  />
-                </Col>
-
-                <Col xs={24} md={8}>
-                  <Upload
-                    label="Party Image"
-                    name="partyImage"
-                    accept="image/*"
-                    maxCount={1}
-                    uploadType="drag"
-                    dragText="Click or drag image to upload"
-                    hint="Party atmosphere photo"
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-
-          {/* Party Details */}
-          <Col xs={24}>
-            <Card title="Party Information" className="mb-6">
-              <Row gutter={[24, 16]}>
-                <Col xs={24} md={12}>
-                  <Select
-                    label="Party Time"
-                    name="partyTime"
-                    placeholder="Select party time"
-                    options={partyTimeOptions}
-                  />
-                </Col>
-
-                <Col xs={24}>
-                  <TextArea
-                    label="Party Description"
-                    name="partyDescription"
-                    placeholder="Describe the party atmosphere, music, crowd, special features..."
-                    rows={4}
-                    maxLength={500}
-                    showCount
-                  />
-                </Col>
-              </Row>
-            </Card>
-          </Col>
-
-          {/* Ticket Availability */}
-          <Col xs={24}>
-            <Card title="Ticket Availability (Hourly)" className="mb-6">
-              <Text
-                type="secondary"
-                style={{ marginBottom: 16, display: "block" }}
-              >
-                Set the number of available tickets for each hour of the day
-              </Text>
-
-              <Row gutter={[16, 16]}>
-                {Array.from({ length: 24 }, (_, i) => {
-                  const hour = i % 12 === 0 ? 12 : i % 12;
-                  const ampm = i < 12 ? "AM" : "PM";
-                  const timeLabel = `${hour}:00 ${ampm}`;
-
-                  return (
-                    <Col xs={12} sm={8} md={6} lg={4} key={i}>
-                      <InputNumber
-                        label={timeLabel}
-                        name={["tickets", i]}
-                        min={0}
-                        max={9999}
-                        placeholder="0"
+      {/* Formik Form */}
+      <Formik
+        initialValues={initialValues}
+        validationSchema={markerValidationSchema}
+        onSubmit={() => {}} // Empty onSubmit to prevent auto-submission
+        enableReinitialize
+      >
+        {({ values, errors, touched, isSubmitting }) => (
+          <div>
+            <Row gutter={[24, 24]}>
+              {/* Basic Information */}
+              <Col xs={24}>
+                <Card title="Basic Information" className="mb-6">
+                  <Row gutter={[24, 16]}>
+                    <Col xs={24} md={12}>
+                      <FormikSelect
+                        name="markerType"
+                        label="Marker Type"
+                        placeholder="Select marker type"
+                        options={markerTypeOptions}
                       />
                     </Col>
-                  );
-                })}
-              </Row>
-            </Card>
-          </Col>
-        </Row>
 
-        {/* Action Buttons */}
-        <Card>
-          <div className="flex justify-end">
-            <Space>
-              <Button size="large" onClick={() => navigate("/markers")}>
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                size="large"
-                icon={<SaveOutlined />}
-                loading={loading}
-                htmlType="submit"
-              >
-                Update Marker
-              </Button>
-            </Space>
+                    <Col xs={24} md={12}>
+                      <FormikInput
+                        name="markerLabel"
+                        label="Marker Label"
+                        placeholder="Enter marker label"
+                      />
+                    </Col>
+
+                    <Col xs={24} md={12}>
+                      <FormikInput
+                        name="latitude"
+                        label="Latitude"
+                        placeholder="e.g., 40.7128"
+                      />
+                    </Col>
+
+                    <Col xs={24} md={12}>
+                      <FormikInput
+                        name="longitude"
+                        label="Longitude"
+                        placeholder="e.g., -74.0060"
+                      />
+                    </Col>
+
+                    <Col xs={24}>
+                      <FormikInput
+                        name="placeName"
+                        label="Place Name"
+                        placeholder="Enter place name"
+                      />
+                    </Col>
+
+                    <Col xs={24}>
+                      <FormikInput
+                        name="website"
+                        label="Website URL"
+                        placeholder="https://example.com"
+                        type="url"
+                      />
+                    </Col>
+                  </Row>
+                </Card>
+              </Col>
+
+              {/* Media Upload */}
+              <Col xs={24}>
+                <Card title="Media Files" className="mb-6">
+                  <Row gutter={[24, 24]}>
+                    <Col xs={24} md={8}>
+                      <FormikUpload
+                        name="partyIcon"
+                        label="Party Icon"
+                        accept="image/*"
+                        maxCount={1}
+                        uploadType="drag"
+                        dragText="Click or drag icon to upload"
+                        hint="PNG, JPG, SVG up to 2MB"
+                      />
+                    </Col>
+
+                    <Col xs={24} md={8}>
+                      <FormikUpload
+                        name="placeImage"
+                        label="Place Image"
+                        accept="image/*"
+                        maxCount={1}
+                        uploadType="drag"
+                        dragText="Click or drag image to upload"
+                        hint="High quality venue photo"
+                      />
+                    </Col>
+
+                    <Col xs={24} md={8}>
+                      <FormikUpload
+                        name="partyImage"
+                        label="Party Image"
+                        accept="image/*"
+                        maxCount={1}
+                        uploadType="drag"
+                        dragText="Click or drag image to upload"
+                        hint="Party atmosphere photo"
+                      />
+                    </Col>
+                  </Row>
+                </Card>
+              </Col>
+
+              {/* Party Details */}
+              <Col xs={24}>
+                <Card title="Party Information" className="mb-6">
+                  <Row gutter={[24, 16]}>
+                    <Col xs={24} md={12}>
+                      <FormikSelect
+                        name="partyTime"
+                        label="Party Time"
+                        placeholder="Select party time"
+                        options={partyTimeOptions}
+                      />
+                    </Col>
+
+                    <Col xs={24}>
+                      <FormikTextArea
+                        name="partyDescription"
+                        label="Party Description"
+                        placeholder="Describe the party atmosphere, music, crowd, special features..."
+                        rows={4}
+                        maxLength={500}
+                        showCount
+                      />
+                    </Col>
+                  </Row>
+                </Card>
+              </Col>
+
+              {/* Ticket Availability */}
+              <Col xs={24}>
+                <Card title="Ticket Availability (Hourly)" className="mb-6">
+                  <Text
+                    type="secondary"
+                    style={{ marginBottom: 16, display: "block" }}
+                  >
+                    Set the number of available tickets for each hour of the day
+                  </Text>
+
+                  <Row gutter={[16, 16]}>
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const hour = i % 12 === 0 ? 12 : i % 12;
+                      const ampm = i < 12 ? "AM" : "PM";
+                      const timeLabel = `${hour}:00 ${ampm}`;
+
+                      return (
+                        <Col xs={12} sm={8} md={6} lg={4} key={i}>
+                          <FormikInputNumber
+                            name={`tickets.${i}`}
+                            label={timeLabel}
+                            min={0}
+                            max={9999}
+                            placeholder="0"
+                          />
+                        </Col>
+                      );
+                    })}
+                  </Row>
+                </Card>
+              </Col>
+            </Row>
+
+            {/* Action Buttons */}
+            <Card>
+              <div className="flex justify-end">
+                <Space>
+                  <Button size="large" onClick={() => navigate("/markers")}>
+                    Cancel
+                  </Button>
+                  <Button
+                    type="primary"
+                    size="large"
+                    icon={<SaveOutlined />}
+                    loading={isSubmitting}
+                    onClick={() => handleSubmit(values)}
+                  >
+                    Update Marker
+                  </Button>
+                </Space>
+              </div>
+            </Card>
           </div>
-        </Card>
-      </Form>
+        )}
+      </Formik>
     </div>
   );
 }

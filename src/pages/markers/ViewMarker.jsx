@@ -16,6 +16,8 @@ import {
   Divider,
   Tooltip,
   Empty,
+  Modal,
+  message,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -25,16 +27,19 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
   CalendarOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import { markerService } from "../../services/markerService";
 
 const { Title, Text, Paragraph } = Typography;
+const { confirm } = Modal;
 
 export default function ViewMarker() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [marker, setMarker] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -42,8 +47,9 @@ export default function ViewMarker() {
       try {
         setLoading(true);
         setError(null);
-        const data = await markerService.getMarker(id);
-        setMarker(data);
+        const response = await markerService.getMarker(id);
+        console.log("API Response:", response);
+        setMarker(response.data);
       } catch (err) {
         console.error("Error fetching marker:", err);
         setError(err.message || "Failed to load marker data");
@@ -62,8 +68,28 @@ export default function ViewMarker() {
   };
 
   const handleDelete = () => {
-    // Implementation for delete confirmation
-    console.log("Delete marker:", id);
+    confirm({
+      title: "Delete Marker",
+      icon: <ExclamationCircleOutlined />,
+      content: `Are you sure you want to delete "${marker?.placeName}"? This action cannot be undone.`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      confirmLoading: deleteLoading,
+      onOk: async () => {
+        setDeleteLoading(true);
+        try {
+          await markerService.deleteMarker(id);
+          message.success("Marker deleted successfully");
+          navigate("/markers");
+        } catch (error) {
+          console.error("Delete error:", error);
+          message.error(error.message || "Error deleting marker");
+        } finally {
+          setDeleteLoading(false);
+        }
+      },
+    });
   };
 
   const getMarkerTypeColor = (type) => {
@@ -100,7 +126,7 @@ export default function ViewMarker() {
   };
 
   const getTotalTickets = () => {
-    if (!marker?.tickets) return 0;
+    if (!marker?.tickets || !Array.isArray(marker.tickets)) return 0;
     return marker.tickets.reduce(
       (total, ticket) => total + (ticket.availableTickets || 0),
       0
@@ -108,18 +134,53 @@ export default function ViewMarker() {
   };
 
   const getPeakHours = () => {
-    if (!marker?.tickets) return [];
+    if (!marker?.tickets || !Array.isArray(marker.tickets)) return [];
+
     const sortedTickets = [...marker.tickets]
       .filter((ticket) => ticket.availableTickets > 0)
       .sort((a, b) => b.availableTickets - a.availableTickets)
       .slice(0, 3);
 
     return sortedTickets.map((ticket) => {
-      const hour = parseInt(ticket.hour);
+      let hour;
+      if (typeof ticket.hour === "string") {
+        const timeMatch = ticket.hour.match(/(\d+):00\s*(AM|PM)/i);
+        if (timeMatch) {
+          hour = parseInt(timeMatch[1]);
+          if (timeMatch[2].toUpperCase() === "PM" && hour !== 12) {
+            hour += 12;
+          } else if (timeMatch[2].toUpperCase() === "AM" && hour === 12) {
+            hour = 0;
+          }
+        } else {
+          hour = parseInt(ticket.hour);
+        }
+      } else {
+        hour = parseInt(ticket.hour);
+      }
+
       const displayHour = hour % 12 === 0 ? 12 : hour % 12;
       const ampm = hour < 12 ? "AM" : "PM";
       return `${displayHour}:00 ${ampm}`;
     });
+  };
+
+  const parseTicketHour = (ticketHour) => {
+    if (typeof ticketHour === "string") {
+      const timeMatch = ticketHour.match(/(\d+):00\s*(AM|PM)/i);
+      if (timeMatch) {
+        let hour = parseInt(timeMatch[1]);
+        if (timeMatch[2].toUpperCase() === "PM" && hour !== 12) {
+          hour += 12;
+        } else if (timeMatch[2].toUpperCase() === "AM" && hour === 12) {
+          hour = 0;
+        }
+        return hour;
+      } else {
+        return parseInt(ticketHour.replace(/[^\d]/g, ""));
+      }
+    }
+    return parseInt(ticketHour);
   };
 
   if (loading) {
@@ -166,6 +227,13 @@ export default function ViewMarker() {
   if (!marker) {
     return (
       <div className="max-w-7xl mx-auto p-4 lg:p-6">
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/markers")}
+          className="mb-4"
+        >
+          Back to Markers
+        </Button>
         <Empty description="Marker not found" />
       </div>
     );
@@ -206,6 +274,7 @@ export default function ViewMarker() {
               danger
               icon={<DeleteOutlined />}
               onClick={handleDelete}
+              loading={deleteLoading}
               className="h-10 px-6 rounded-lg"
             >
               Delete
@@ -443,12 +512,15 @@ export default function ViewMarker() {
             title="Hourly Ticket Availability"
             className="shadow-sm border-0 rounded-lg"
           >
-            {marker.tickets && marker.tickets.length > 0 ? (
+            {marker.tickets &&
+            Array.isArray(marker.tickets) &&
+            marker.tickets.length > 0 ? (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {Array.from({ length: 24 }, (_, i) => {
-                  const ticket = marker.tickets.find(
-                    (t) => parseInt(t.hour) === i
-                  );
+                  const ticket = marker.tickets.find((t) => {
+                    const ticketHour = parseTicketHour(t.hour);
+                    return ticketHour === i;
+                  });
                   const availableTickets = ticket?.availableTickets || 0;
                   const hour = i % 12 === 0 ? 12 : i % 12;
                   const ampm = i < 12 ? "AM" : "PM";
@@ -492,9 +564,10 @@ export default function ViewMarker() {
                   );
                 }).filter((_, i) => {
                   // Show only hours with tickets or peak hours
-                  const ticket = marker.tickets.find(
-                    (t) => parseInt(t.hour) === i
-                  );
+                  const ticket = marker.tickets.find((t) => {
+                    const ticketHour = parseTicketHour(t.hour);
+                    return ticketHour === i;
+                  });
                   return (ticket?.availableTickets || 0) > 0;
                 })}
               </div>
@@ -512,7 +585,10 @@ export default function ViewMarker() {
       >
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
           {Array.from({ length: 24 }, (_, i) => {
-            const ticket = marker.tickets?.find((t) => parseInt(t.hour) === i);
+            const ticket = marker.tickets?.find((t) => {
+              const ticketHour = parseTicketHour(t.hour);
+              return ticketHour === i;
+            });
             const availableTickets = ticket?.availableTickets || 0;
             const hour = i % 12 === 0 ? 12 : i % 12;
             const ampm = i < 12 ? "AM" : "PM";

@@ -382,31 +382,30 @@ export default function ViewMarker() {
             className="mb-6 shadow-sm border-0 rounded-lg"
           >
             <Row gutter={[16, 16]}>
-              {marker.partyIconUrl && (
+              {marker.partyIcon && (
                 <Col xs={24} sm={8}>
                   <div className="text-center">
                     <Text strong className="block mb-2 text-gray-700">
                       Party Icon
                     </Text>
                     <Image
-                      src={marker.partyIconUrl}
+                      src={marker.partyIcon}
                       alt="Party Icon"
                       className="rounded-lg border border-gray-200"
                       style={{ maxHeight: 120, objectFit: "cover" }}
-                      fallback="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMIAAADDCAYAAADQvc6UAAABRWlDQ1BJQ0MgUHJvZmlsZQAAKJFjYGASSSwoyGFhYGDIzSspCnJ3UoiIjFJgf8LAwSDCIMogwMCcmFxc4BgQ4ANUwgCjUcG3awyMIPqyLsis7PPOq3QdDFcvjV3jOD1boQVTPQrgSkktTgbSf4A4LbmgqISBgTEFyFYuLykAsTuAbJEioKOA7DkgdjqEvQHEToKwj4DVhAQ5A9k3gGyB5IxEoBmML4BsnSQk8XQkNtReEOBxcfXxUQg1Mjc0dyHgXNJBSWpFCYh2zi+oLMpMzyhRcASGUqqCZ16yno6CkYGRAQMDKMwhqj/fAIcloxgHQqxAjIHBEugw5sUIsSQpBobtQPdLciLEVJYzMPBHMDBsayhILEqEO4DxG0txmrERhM29nYGBddr//5/DGRjYNRkY/l7////39v///y4Dmn+LgeHANwDrkl1AuO+pmgAAADhlWElmTU0AKgAAAAgAAYdpAAQAAAABAAAAGgAAAAAAAqACAAQAAAABAAAAwqADAAQAAAABAAAAwwAAAAD9b/HnAAAHlklEQVR4Ae3dP3Ik1RnG4W+FgYxN"
                     />
                   </div>
                 </Col>
               )}
 
-              {marker.placeImageUrl && (
+              {marker.placeImage && (
                 <Col xs={24} sm={8}>
                   <div className="text-center">
                     <Text strong className="block mb-2 text-gray-700">
                       Place Image
                     </Text>
                     <Image
-                      src={marker.placeImageUrl}
+                      src={marker.placeImage}
                       alt="Place"
                       className="rounded-lg border border-gray-200"
                       style={{ maxHeight: 120, objectFit: "cover" }}
@@ -415,14 +414,14 @@ export default function ViewMarker() {
                 </Col>
               )}
 
-              {marker.partyImageUrl && (
+              {marker.partyImage && (
                 <Col xs={24} sm={8}>
                   <div className="text-center">
                     <Text strong className="block mb-2 text-gray-700">
                       Party Image
                     </Text>
                     <Image
-                      src={marker.partyImageUrl}
+                      src={marker.partyImage}
                       alt="Party"
                       className="rounded-lg border border-gray-200"
                       style={{ maxHeight: 120, objectFit: "cover" }}
@@ -432,11 +431,9 @@ export default function ViewMarker() {
               )}
             </Row>
 
-            {!marker.partyIconUrl &&
-              !marker.placeImageUrl &&
-              !marker.partyImageUrl && (
-                <Empty description="No images available" className="py-8" />
-              )}
+            {!marker.partyIcon && !marker.placeImage && !marker.partyImage && (
+              <Empty description="No images available" className="py-8" />
+            )}
           </Card>
         </Col>
 

@@ -51,8 +51,6 @@ export default function AddMarker() {
     { label: "Party", value: "party" },
     { label: "Bar", value: "bar" },
     { label: "Restaurant", value: "restaurant" },
-    { label: "Club", value: "club" },
-    { label: "Event Hall", value: "event_hall" },
   ];
 
   const partyTimeOptions = [

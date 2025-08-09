@@ -4,16 +4,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Content-Security-Policy",
-          "value": "default-src 'none'; img-src 'self' data: https://mypartyapp.s3.us-east-1.amazonaws.com; script-src 'self'; style-src 'self'; connect-src 'self' https://party-map-backend.vercel.app https://mypartyapp.s3.us-east-1.amazonaws.com"
-        }
-      ]
-    }
   ]
 }

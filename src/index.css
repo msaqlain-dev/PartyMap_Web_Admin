@@ -1,4 +1,43 @@
-@import url("https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap");
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/nunito-regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/nunito-medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/nunito-semibold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/nunito-bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/nunito-extrabold.ttf") format("truetype");
+}
+
 @import "tailwindcss";
 
 @theme {
@@ -7,25 +46,18 @@
   --color-primary: #e10098;
   --color-secondary: #202020;
   --color-alpha: #fab54e;
-}
-
-body {
-  margin: 0;
-  font-size: 11px;
-  font-family: "Figtree", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
+  --font-nunito: "Nunito", sans-serif;
 }
 
 code {
-  font-family: "Figtree", Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-family: "Nunito", Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 @media (min-width: 769px) {
   /* md */
   body {
     font-size: 12px;
+    font-family: "Nunito", sans-serif;
   }
 }
 
@@ -33,6 +65,7 @@ code {
   /* 2xl */
   body {
     font-size: 14px;
+    font-family: "Nunito", sans-serif;
   }
 }
 
@@ -296,7 +329,7 @@ code {
 
 .ant-statistic-content {
   font-weight: 700 !important;
-  font-family: "Figtree", sans-serif !important;
+  font-family: "Nunito", sans-serif !important;
 }
 
 /* Descriptions styling */

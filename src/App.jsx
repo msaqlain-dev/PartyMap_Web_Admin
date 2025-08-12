@@ -19,7 +19,7 @@ const antdTheme = {
     colorLink: "#e10098",
     colorLinkHover: "#c1007a",
     borderRadius: 8,
-    fontFamily: '"Figtree", sans-serif',
+    fontFamily: '"Nunito", sans-serif',
   },
   components: {
     Button: {
@@ -42,6 +42,9 @@ const antdTheme = {
     Form: {
       labelFontSize: 14,
       labelColor: "#374151",
+    },
+    Typography: {
+      fontFamily: '"Nunito", sans-serif',
     },
   },
 };

@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import useUIStore from "../store/uiStore";
 import { partyMapBranding } from "../assets/images";
-import { DashboardIcon, MarkerIcon, GrowthIcon, SettingIcon } from "../assets/icons";
+import { DashboardIcon, MarkerIcon, GrowthIcon, SettingIcon, PolygonIcon } from "../assets/icons";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -10,6 +10,7 @@ const Sidebar = () => {
   const menuItems = [
     { name: "Dashboard", path: "/", icon: <DashboardIcon /> },
     { name: "Markers", path: "/markers", icon: <MarkerIcon /> },
+    { name: "Polygons", path: "/polygons", icon: <PolygonIcon /> },
     { name: "Customers", path: "/customers", icon: <GrowthIcon /> },
     { name: "Settings", path: "/settings", icon: <SettingIcon /> },
   ];

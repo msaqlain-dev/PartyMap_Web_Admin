@@ -11,6 +11,8 @@ import Markers from "./pages/markers/Markers";
 import AddMarker from "./pages/markers/AddMarker";
 import EditMarker from "./pages/markers/EditMarker";
 import ViewMarker from "./pages/markers/ViewMarker";
+import Polygons from "./pages/polygons/Polygons";
+import AddPolygon from "./pages/polygons/AddPolygon";
 
 // Ant Design theme configuration
 const antdTheme = {
@@ -63,6 +65,12 @@ function App() {
               <Route path="/markers/add" element={<AddMarker />} />
               <Route path="/markers/edit/:id" element={<EditMarker />} />
               <Route path="/markers/view/:id" element={<ViewMarker />} />
+
+              {/* Polygons Routes */}
+              <Route path="/polygons" element={<Polygons />} />
+              <Route path="/polygons/add" element={<AddPolygon />} />
+              {/* <Route path="/polygons/edit/:id" element={<EditPolygon />} />
+              <Route path="/polygons/view/:id" element={<ViewPolygon />} /> */}
 
               <Route path="/customers" element={<CustomerManagement />} />
               <Route path="/settings" element={<Settings />} />

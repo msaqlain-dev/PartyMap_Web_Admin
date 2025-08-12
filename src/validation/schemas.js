@@ -313,3 +313,187 @@ export const markerStepValidationSchemas = {
     tickets: Yup.array().of(Yup.number().min(0).max(9999)),
   }),
 };
+
+// Polygon validation schema
+
+// Coordinate validation schema
+const coordinateSchema = Yup.object({
+  longitude: Yup.number()
+    .required("Longitude is required")
+    .min(-180, "Longitude must be between -180 and 180")
+    .max(180, "Longitude must be between -180 and 180"),
+  latitude: Yup.number()
+    .required("Latitude is required")
+    .min(-90, "Latitude must be between -90 and 90")
+    .max(90, "Latitude must be between -90 and 90"),
+});
+
+// Ring validation schema
+const ringSchema = Yup.object({
+  coordinates: Yup.array()
+    .of(coordinateSchema)
+    .min(4, "Ring must have at least 4 coordinates")
+    .test(
+      "is-closed",
+      "Ring must be closed (first and last coordinates must be the same)",
+      function (coordinates) {
+        if (!coordinates || coordinates.length < 4) return true; // Let min validation handle this
+
+        const first = coordinates[0];
+        const last = coordinates[coordinates.length - 1];
+
+        return (
+          first.longitude === last.longitude && first.latitude === last.latitude
+        );
+      }
+    )
+    .required("Coordinates are required"),
+});
+
+// Geometry validation schema
+const geometrySchema = Yup.object({
+  outerRing: ringSchema.required("Outer ring is required"),
+  holes: Yup.array().of(ringSchema).default([]),
+});
+
+// Style validation schema
+const styleSchema = Yup.object({
+  fillColor: Yup.string()
+    .matches(
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      "Fill color must be a valid hex color"
+    )
+    .default("#0000FF"),
+  fillOpacity: Yup.number().min(0).max(1).default(0.8),
+  strokeColor: Yup.string()
+    .matches(
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      "Stroke color must be a valid hex color"
+    )
+    .default("#000000"),
+  strokeWidth: Yup.number().min(0).max(10).default(1),
+  strokeOpacity: Yup.number().min(0).max(1).default(1),
+});
+
+// Extrusion validation schema
+const extrusionSchema = Yup.object({
+  height: Yup.number().min(0).max(1000).default(50),
+  base: Yup.number().min(0).default(0),
+  color: Yup.string()
+    .matches(
+      /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+      "Extrusion color must be a valid hex color"
+    )
+    .default("#0000FF"),
+  opacity: Yup.number().min(0).max(1).default(0.8),
+});
+
+// Main polygon validation schema
+export const polygonValidationSchema = Yup.object({
+  name: Yup.string()
+    .required("Name is required")
+    .min(2, "Name must be at least 2 characters")
+    .max(200, "Name cannot exceed 200 characters"),
+
+  description: Yup.string().max(
+    500,
+    "Description cannot exceed 500 characters"
+  ),
+
+  polygonType: Yup.string()
+    .required("Polygon type is required")
+    .oneOf(
+      [
+        "building",
+        "area",
+        "zone",
+        "boundary",
+        "venue",
+        "park",
+        "parking",
+        "other",
+      ],
+      "Invalid polygon type"
+    ),
+
+  geometry: geometrySchema.required("Geometry is required"),
+
+  style: styleSchema.default({}),
+
+  extrusion: extrusionSchema.default({}),
+
+  marker: Yup.string().nullable(),
+
+  properties: Yup.object().default({}),
+
+  isVisible: Yup.boolean().default(true),
+
+  isInteractive: Yup.boolean().default(true),
+
+  minZoom: Yup.number().min(0).max(24).default(0),
+
+  maxZoom: Yup.number().min(0).max(24).default(24),
+});
+
+// Quick polygon validation (for basic forms)
+export const quickPolygonSchema = Yup.object({
+  name: Yup.string().required("Name is required"),
+  polygonType: Yup.string().required("Type is required"),
+  geometry: Yup.object({
+    outerRing: Yup.object({
+      coordinates: Yup.array()
+        .min(4, "At least 4 coordinates required")
+        .required(),
+    }).required(),
+  }).required(),
+});
+
+// Bulk operations schema
+export const bulkPolygonSchema = Yup.object({
+  polygons: Yup.array()
+    .of(polygonValidationSchema)
+    .min(1, "At least one polygon is required")
+    .required("Polygons array is required"),
+});
+
+// Bounds validation schema
+export const boundsSchema = Yup.object({
+  north: Yup.number().required("North bound is required"),
+  south: Yup.number().required("South bound is required"),
+  east: Yup.number().required("East bound is required"),
+  west: Yup.number().required("West bound is required"),
+}).test("valid-bounds", "Invalid bounds", function (bounds) {
+  if (!bounds) return true;
+
+  const { north, south, east, west } = bounds;
+
+  if (north <= south) {
+    return this.createError({ message: "North must be greater than south" });
+  }
+
+  if (east <= west) {
+    return this.createError({ message: "East must be greater than west" });
+  }
+
+  return true;
+});
+
+// Step validation schemas for multi-step forms
+export const polygonStepValidationSchemas = {
+  step1: Yup.object({
+    name: Yup.string().required("Name is required"),
+    polygonType: Yup.string().required("Type is required"),
+    description: Yup.string().max(500),
+  }),
+
+  step2: Yup.object({
+    geometry: geometrySchema.required("Geometry is required"),
+  }),
+
+  step3: Yup.object({
+    style: styleSchema,
+    extrusion: extrusionSchema,
+    isVisible: Yup.boolean(),
+    isInteractive: Yup.boolean(),
+  }),
+};

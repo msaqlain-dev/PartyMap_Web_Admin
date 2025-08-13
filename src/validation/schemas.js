@@ -316,44 +316,55 @@ export const markerStepValidationSchemas = {
 
 // Polygon validation schema
 
-// Coordinate validation schema
-const coordinateSchema = Yup.object({
-  longitude: Yup.number()
-    .required("Longitude is required")
-    .min(-180, "Longitude must be between -180 and 180")
-    .max(180, "Longitude must be between -180 and 180"),
-  latitude: Yup.number()
-    .required("Latitude is required")
-    .min(-90, "Latitude must be between -90 and 90")
-    .max(90, "Latitude must be between -90 and 90"),
-});
+const coordinateSchema = Yup.array()
+  .of(Yup.number().required("Coordinate value is required"))
+  .length(2, "Coordinate must be [longitude, latitude]")
+  .test(
+    "longitude-range",
+    "Longitude must be between -180 and 180",
+    (coord) => {
+      if (!coord || coord.length !== 2) return false;
+      return coord[0] >= -180 && coord[0] <= 180;
+    }
+  )
+  .test("latitude-range", "Latitude must be between -90 and 90", (coord) => {
+    if (!coord || coord.length !== 2) return false;
+    return coord[1] >= -90 && coord[1] <= 90;
+  });
 
-// Ring validation schema
-const ringSchema = Yup.object({
-  coordinates: Yup.array()
-    .of(coordinateSchema)
-    .min(4, "Ring must have at least 4 coordinates")
-    .test(
-      "is-closed",
-      "Ring must be closed (first and last coordinates must be the same)",
-      function (coordinates) {
-        if (!coordinates || coordinates.length < 4) return true; // Let min validation handle this
+// Ring validation schema (array of coordinates)
+const ringSchema = Yup.array()
+  .of(coordinateSchema)
+  .min(4, "Ring must have at least 4 coordinates")
+  .test(
+    "is-closed",
+    "Ring must be closed (first and last coordinates must be the same)",
+    function (coordinates) {
+      if (!coordinates || coordinates.length < 4) return true; // Let min validation handle this
 
-        const first = coordinates[0];
-        const last = coordinates[coordinates.length - 1];
+      const first = coordinates[0];
+      const last = coordinates[coordinates.length - 1];
 
-        return (
-          first.longitude === last.longitude && first.latitude === last.latitude
-        );
-      }
-    )
-    .required("Coordinates are required"),
-});
+      return (
+        Array.isArray(first) &&
+        Array.isArray(last) &&
+        first.length === 2 &&
+        last.length === 2 &&
+        first[0] === last[0] &&
+        first[1] === last[1]
+      );
+    }
+  );
 
-// Geometry validation schema
+// Geometry validation schema (GeoJSON format)
 const geometrySchema = Yup.object({
-  outerRing: ringSchema.required("Outer ring is required"),
-  holes: Yup.array().of(ringSchema).default([]),
+  type: Yup.string()
+    .oneOf(["Polygon"], "Geometry type must be Polygon")
+    .required(),
+  coordinates: Yup.array()
+    .of(ringSchema)
+    .min(1, "Geometry must have at least one ring")
+    .required("Coordinates are required"),
 });
 
 // Style validation schema
@@ -388,7 +399,7 @@ const extrusionSchema = Yup.object({
   opacity: Yup.number().min(0).max(1).default(0.8),
 });
 
-// Main polygon validation schema
+// Main polygon validation schema (updated to GeoJSON format)
 export const polygonValidationSchema = Yup.object({
   name: Yup.string()
     .required("Name is required")
@@ -439,13 +450,7 @@ export const polygonValidationSchema = Yup.object({
 export const quickPolygonSchema = Yup.object({
   name: Yup.string().required("Name is required"),
   polygonType: Yup.string().required("Type is required"),
-  geometry: Yup.object({
-    outerRing: Yup.object({
-      coordinates: Yup.array()
-        .min(4, "At least 4 coordinates required")
-        .required(),
-    }).required(),
-  }).required(),
+  geometry: geometrySchema.required("Geometry is required"),
 });
 
 // Bulk operations schema
@@ -478,7 +483,7 @@ export const boundsSchema = Yup.object({
   return true;
 });
 
-// Step validation schemas for multi-step forms
+// Step validation schemas for multi-step forms (updated)
 export const polygonStepValidationSchemas = {
   step1: Yup.object({
     name: Yup.string().required("Name is required"),

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Space,
   Button,
   Modal,
   message,
@@ -22,7 +21,6 @@ import {
   MoreOutlined,
   EyeOutlined,
   EditOutlined,
-//   ShapeOutlined,
   LinkOutlined,
   DisconnectOutlined,
 } from "@ant-design/icons";
@@ -31,6 +29,8 @@ import {
   SearchField,
   TableCustomizeColumnMenu,
 } from "../../components";
+import { PolygonsTableColumn } from "../../content/TableCustomizeColumnData";
+import { PolygonsDefaultFilter } from "../../content/DefaultFilters";
 import { polygonService } from "../../services/polygonService";
 import { markerService } from "../../services/markerService";
 import * as Loader from "../../components/Loaders";
@@ -40,18 +40,16 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 const Polygons = () => {
-  const [filter, setFilter] = useState({
-    page: 1,
-    limit: 10,
-    search: "",
-    type: "",
-  });
+  const [checkedTableMenuColumn, setCheckedTableMenuColumn] =
+    useState(PolygonsTableColumn);
+  const [filter, setFilter] = useState(PolygonsDefaultFilter);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [search, setSearch] = useState("");
   const [data, setData] = useState({ data: [], meta: {} });
   const [loading, setLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [markers, setMarkers] = useState([]);
+  const [markersLoading, setMarkersLoading] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
     building: 0,
@@ -114,7 +112,19 @@ const Polygons = () => {
     setLoading(true);
     try {
       const response = await polygonService.getPolygons(filter);
-      setData(response);
+      const formattedData = response.data.map((polygon) => ({
+        name: polygon.name,
+        polygonType: polygon.polygonType,
+        marker: polygon.marker || null,
+        isVisible: polygon.isVisible,
+        height: polygon.extrusion?.height || 0,
+        geometry: polygon.geometry,
+        _id: polygon._id,
+        description: polygon.description || "No description",
+        createdAt: polygon.createdAt,
+        updatedAt: polygon.updatedAt,
+      }));
+      setData(formattedData);
 
       const calculatedStats = calculatePolygonStats(response.data || []);
       setStats(calculatedStats);
@@ -129,10 +139,15 @@ const Polygons = () => {
   // Fetch markers for association
   const fetchMarkers = useCallback(async () => {
     try {
-      const response = await markerService.getAllMarkersWithoutPagination();
+      setMarkersLoading(true);
+      const response = await markerService.getMarkers({ limit: 1000 }); // Get all markers
+      console.log("Fetched markers for association:", response);
       setMarkers(response.data || []);
     } catch (error) {
       console.error("Error fetching markers:", error);
+      message.error("Failed to load markers for association");
+    } finally {
+      setMarkersLoading(false);
     }
   }, []);
 
@@ -382,7 +397,9 @@ const Polygons = () => {
       render: (name, record) => (
         <div className="flex flex-col">
           <span className="text-sm font-semibold text-gray-800">{name}</span>
-          <span className="text-xs text-gray-500">{record.description}</span>
+          <span className="text-xs text-gray-500 truncate max-w-48">
+            {record.description || "No description"}
+          </span>
         </div>
       ),
     },
@@ -395,7 +412,6 @@ const Polygons = () => {
           color={getPolygonTypeColor(type)}
           className="capitalize font-medium px-3 py-1 rounded-full border-0"
         >
-          {/* <ShapeOutlined className="mr-1" /> */}
           {type?.replace("_", " ")}
         </Tag>
       ),
@@ -405,16 +421,14 @@ const Polygons = () => {
       dataIndex: "coordinateCount",
       loader: <Loader.TableRowLoader />,
       render: (_, record) => {
-        const outerCount = record.geometry?.outerRing?.coordinates?.length || 0;
-        const holesCount =
-          record.geometry?.holes?.reduce(
-            (acc, hole) => acc + hole.coordinates.length,
-            0
-          ) || 0;
+        const outerCount = record.geometry?.coordinates?.[0]?.length || 0;
+        const totalRings = record.geometry?.coordinates?.length || 0;
         return (
           <div className="text-xs text-gray-600">
-            <div>Outer: {outerCount}</div>
-            {holesCount > 0 && <div>Holes: {holesCount}</div>}
+            <div>{outerCount} points</div>
+            <div className="text-gray-400">
+              {totalRings} ring{totalRings !== 1 ? "s" : ""}
+            </div>
           </div>
         );
       },
@@ -447,14 +461,13 @@ const Polygons = () => {
     },
     {
       title: "Height",
-      dataIndex: ["extrusion", "height"],
+      dataIndex: "height",
       loader: <Loader.TableRowLoader />,
-      render: (height) => (
-        <span className="text-xs text-gray-600">{height || 0}m</span>
-      ),
+      render: (height) => {
+        return <span className="text-xs text-gray-600">{height || 0}m</span>;
+      },
     },
     {
-      title: "Actions",
       dataIndex: "action",
       loader: <Loader.TableActionLoader />,
       render: (_, record) => (
@@ -499,7 +512,7 @@ const Polygons = () => {
 
         {/* Stats Cards */}
         <Row gutter={[16, 16]} className="mb-6">
-          <Col xs={12} sm={6} lg={4}>
+          <Col xs={12} sm={6} lg={5}>
             <Card className="text-center border-0 shadow-sm rounded-lg hover:shadow-md transition-shadow">
               <Statistic
                 title="Total Polygons"
@@ -616,14 +629,24 @@ const Polygons = () => {
                 Delete Selected ({selectedRowKeys.length})
               </Button>
             )}
+            <TableCustomizeColumnMenu
+              setCheckedTableMenuColumn={setCheckedTableMenuColumn}
+              checkedTableMenuColumn={checkedTableMenuColumn}
+            />
           </div>
         </div>
 
         {/* Table */}
         <div className="overflow-hidden">
           <CustomTable
-            columns={columns}
-            dataSource={data?.data || []}
+            columns={columns.filter(
+              (column) =>
+                column.dataIndex === "action" ||
+                checkedTableMenuColumn.some(
+                  (col) => col.dataIndex === column.dataIndex && col.visible
+                )
+            )}
+            dataSource={data || []}
             pagination={{
               current: filter.page,
               pageSize: filter.limit,
@@ -631,7 +654,7 @@ const Polygons = () => {
               showSizeChanger: true,
               showQuickJumper: true,
               showTotal: (total, range) =>
-                `${range[0]}-${range[1]} of ${total} markers`,
+                `${range[0]}-${range[1]} of ${total} polygons`,
               className: "px-4 py-3",
             }}
             rowSelection={rowSelection}
@@ -640,11 +663,12 @@ const Polygons = () => {
             }
             isLoading={loading}
             rowKey="_id"
-            className="markers-table"
+            className="polygons-table"
           />
         </div>
       </Card>
-      {/* Modals */}
+
+      {/* Delete Confirmation Modal */}
       <Modal
         title="Delete Polygon"
         open={deleteModalVisible}
@@ -664,13 +688,14 @@ const Polygons = () => {
         </div>
         {polygonToDelete && (
           <div className="bg-gray-50 p-3 rounded-lg">
-            <strong>Name:</strong> {polygonToDelete.name}
-            <br />
-            <strong>Type:</strong> {polygonToDelete.polygonType}
-            <br />
-            <strong>Coordinates:</strong>{" "}
-            {polygonToDelete.geometry?.outerRing?.coordinates.length || 0}{" "}
-            points
+            <div className="font-medium">{polygonToDelete.name}</div>
+            <div className="text-sm text-gray-500">
+              Type: {polygonToDelete.polygonType}
+            </div>
+            <div className="text-sm text-gray-500">
+              Coordinates:{" "}
+              {polygonToDelete.geometry?.coordinates?.[0]?.length || 0} points
+            </div>
           </div>
         )}
         <div className="mt-3 text-sm text-red-600">
@@ -680,7 +705,7 @@ const Polygons = () => {
 
       {/* Bulk Delete Confirmation Modal */}
       <Modal
-        title="Bulk Delete Polygons"
+        title="Delete Selected Polygons"
         open={bulkDeleteModalVisible}
         onOk={confirmBulkDelete}
         onCancel={() => setBulkDeleteModalVisible(false)}
@@ -691,13 +716,17 @@ const Polygons = () => {
       >
         <div className="flex items-center gap-3 mb-4">
           <ExclamationCircleOutlined className="text-orange-500 text-xl" />
-          <span>Are you sure you want to delete the selected polygons?</span>
+          <span>
+            Are you sure you want to delete {selectedRowKeys.length} selected
+            polygon(s)?
+          </span>
         </div>
-        <div className="text-sm text-gray-600">
-          This action will permanently delete {selectedRowKeys.length}{" "}
-          polygon(s).
+        <div className="mt-3 text-sm text-red-600">
+          This action cannot be undone.
         </div>
       </Modal>
+
+      {/* Associate with Marker Modal */}
       <Modal
         title="Associate Polygon with Marker"
         open={associateModalVisible}
@@ -709,7 +738,6 @@ const Polygons = () => {
         }}
         okText="Associate"
         cancelText="Cancel"
-        okButtonProps={{ loading: deleteLoading }}
         confirmLoading={deleteLoading}
       >
         <div className="flex items-center gap-3 mb-4">
@@ -718,25 +746,48 @@ const Polygons = () => {
         </div>
         {polygonToAssociate && (
           <div className="bg-gray-50 p-3 rounded-lg mb-4">
-            <strong>Polygon Name:</strong> {polygonToAssociate.name}
-            <br />
-            <strong>Type:</strong> {polygonToAssociate.polygonType}
-            <br />
+            <div className="font-medium">{polygonToAssociate.name}</div>
+            <div className="text-sm text-gray-500">
+              Type: {polygonToAssociate.polygonType}
+            </div>
           </div>
         )}
         <Select
-          placeholder="Select Marker"
+          placeholder={
+            markersLoading ? "Loading markers..." : "Select a marker"
+          }
           style={{ width: "100%" }}
           value={selectedMarkerId || undefined}
           onChange={(value) => setSelectedMarkerId(value)}
-          className="w-full"
+          loading={markersLoading}
+          disabled={markersLoading}
+          showSearch
+          optionFilterProp="children"
+          filterOption={(input, option) =>
+            (option?.children ?? "").toLowerCase().includes(input.toLowerCase())
+          }
         >
           {markers.map((marker) => (
             <Option key={marker._id} value={marker._id}>
-              {marker.placeName}
+              <div>
+                <div className="font-medium">{marker.placeName}</div>
+                <div className="text-xs text-gray-500">
+                  {marker.markerType} • {marker.markerLabel}
+                </div>
+              </div>
             </Option>
           ))}
         </Select>
+        {markersLoading && (
+          <div className="mt-2 text-xs text-gray-500">
+            Loading available markers...
+          </div>
+        )}
+        {!markersLoading && markers.length === 0 && (
+          <div className="mt-2 text-xs text-red-500">
+            No markers available. Please create some markers first.
+          </div>
+        )}
         <div className="mt-3 text-sm text-gray-600">
           This will associate the polygon with the selected marker.
         </div>

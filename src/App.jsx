@@ -13,6 +13,8 @@ import EditMarker from "./pages/markers/EditMarker";
 import ViewMarker from "./pages/markers/ViewMarker";
 import Polygons from "./pages/polygons/Polygons";
 import AddPolygon from "./pages/polygons/AddPolygon";
+import EditPolygon from "./pages/polygons/EditPolygon";
+import ViewPolygon from "./pages/polygons/ViewPolygon";
 
 // Ant Design theme configuration
 const antdTheme = {
@@ -69,8 +71,8 @@ function App() {
               {/* Polygons Routes */}
               <Route path="/polygons" element={<Polygons />} />
               <Route path="/polygons/add" element={<AddPolygon />} />
-              {/* <Route path="/polygons/edit/:id" element={<EditPolygon />} />
-              <Route path="/polygons/view/:id" element={<ViewPolygon />} /> */}
+              <Route path="/polygons/edit/:id" element={<EditPolygon />} />
+              <Route path="/polygons/view/:id" element={<ViewPolygon />} />
 
               <Route path="/customers" element={<CustomerManagement />} />
               <Route path="/settings" element={<Settings />} />

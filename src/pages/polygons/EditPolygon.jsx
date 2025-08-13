@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Formik } from "formik";
 import {
   Button,
@@ -14,8 +14,14 @@ import {
   InputNumber,
   Switch,
   Slider,
+  Spin,
+  Alert,
 } from "antd";
-import { ArrowLeftOutlined, SaveOutlined } from "@ant-design/icons";
+import {
+  ArrowLeftOutlined,
+  SaveOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import {
   FormikInput,
   FormikSelect,
@@ -25,20 +31,21 @@ import {
   polygonValidationSchema,
   polygonStepValidationSchemas,
 } from "../../validation/schemas";
-import {
-  polygonService,
-  convertCoordsToGeoJSON,
-} from "../../services/polygonService";
+import { polygonService } from "../../services/polygonService";
 import { markerService } from "../../services/markerService";
 
 const { Title, Text } = Typography;
 
-export default function AddPolygon() {
+export default function EditPolygon() {
+  const { id } = useParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [markers, setMarkers] = useState([]);
   const [markersLoading, setMarkersLoading] = useState(false);
+  const [initialValues, setInitialValues] = useState(null);
 
   const steps = [
     {
@@ -66,59 +73,81 @@ export default function AddPolygon() {
     { label: "Other", value: "other" },
   ];
 
-  const initialValues = {
-    name: "",
-    description: "",
-    polygonType: "building",
-    geometry: {
-      type: "Polygon",
-      coordinates: [
-        [
-          [-74.006, 40.7128], // [longitude, latitude]
-          [-74.005, 40.7128],
-          [-74.005, 40.7138],
-          [-74.006, 40.7138],
-          [-74.006, 40.7128], // Closed polygon
-        ],
-      ],
-    },
-    style: {
-      fillColor: "#0000FF",
-      fillOpacity: 0.8,
-      strokeColor: "#000000",
-      strokeWidth: 1,
-      strokeOpacity: 1,
-    },
-    extrusion: {
-      height: 50,
-      base: 0,
-      color: "#0000FF",
-      opacity: 0.8,
-    },
-    marker: null,
-    isVisible: true,
-    isInteractive: true,
-    minZoom: 0,
-    maxZoom: 24,
-  };
-
-  // Fetch markers for association
+  // Fetch polygon data and markers
   useEffect(() => {
-    const fetchMarkers = async () => {
+    const fetchData = async () => {
       try {
+        setInitialLoading(true);
+        setError(null);
+
+        // Fetch polygon data
+        const polygonResponse = await polygonService.getPolygon(id);
+        const polygonData = polygonResponse.data;
+
+        console.log("Fetched polygon data:", polygonData);
+
+        // Fetch markers
         setMarkersLoading(true);
-        const response = await markerService.getMarkers({ limit: 1000 }); // Get all markers
-        console.log("Fetched markers:", response);
-        setMarkers(response.data || []);
-      } catch (error) {
-        console.error("Error fetching markers:", error);
-        message.error("Failed to load markers");
+        const markersResponse = await markerService.getMarkers({ limit: 1000 });
+        setMarkers(markersResponse.data || []);
+        setMarkersLoading(false);
+
+        // Prepare initial values
+        const formData = {
+          name: polygonData.name || "",
+          description: polygonData.description || "",
+          polygonType: polygonData.polygonType || "building",
+          geometry: {
+            type: "Polygon",
+            coordinates: polygonData.geometry?.coordinates || [
+              [
+                [-74.006, 40.7128],
+                [-74.005, 40.7128],
+                [-74.005, 40.7138],
+                [-74.006, 40.7138],
+                [-74.006, 40.7128],
+              ],
+            ],
+          },
+          style: {
+            fillColor: polygonData.style?.fillColor || "#0000FF",
+            fillOpacity: polygonData.style?.fillOpacity || 0.8,
+            strokeColor: polygonData.style?.strokeColor || "#000000",
+            strokeWidth: polygonData.style?.strokeWidth || 1,
+            strokeOpacity: polygonData.style?.strokeOpacity || 1,
+          },
+          extrusion: {
+            height: polygonData.extrusion?.height || 50,
+            base: polygonData.extrusion?.base || 0,
+            color: polygonData.extrusion?.color || "#0000FF",
+            opacity: polygonData.extrusion?.opacity || 0.8,
+          },
+          marker: polygonData.marker?._id || null,
+          isVisible:
+            polygonData.isVisible !== undefined ? polygonData.isVisible : true,
+          isInteractive:
+            polygonData.isInteractive !== undefined
+              ? polygonData.isInteractive
+              : true,
+          minZoom: polygonData.minZoom || 0,
+          maxZoom: polygonData.maxZoom || 24,
+        };
+
+        setInitialValues(formData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+        setError(err.message || "Failed to load polygon data");
+        message.error("Failed to load polygon data");
       } finally {
+        setInitialLoading(false);
         setMarkersLoading(false);
       }
     };
-    fetchMarkers();
-  }, []);
+
+    if (id) {
+      fetchData();
+    }
+  }, [id]);
 
   const handleFinalSubmit = async (values) => {
     setLoading(true);
@@ -132,13 +161,13 @@ export default function AddPolygon() {
         },
       };
 
-      console.log("Submitting polygon data:", polygonData);
-      await polygonService.createPolygon(polygonData);
-      message.success("Polygon created successfully!");
+      console.log("Updating polygon data:", polygonData);
+      await polygonService.updatePolygon(id, polygonData);
+      message.success("Polygon updated successfully!");
       navigate("/polygons");
     } catch (error) {
-      console.error("Error creating polygon:", error);
-      message.error(error.message || "Error creating polygon");
+      console.error("Error updating polygon:", error);
+      message.error(error.message || "Error updating polygon");
     } finally {
       setLoading(false);
     }
@@ -163,6 +192,58 @@ export default function AddPolygon() {
   const handlePrev = () => {
     setCurrentStep(currentStep - 1);
   };
+
+  if (initialLoading) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center py-12">
+          <Spin size="large" />
+          <div className="mt-4">
+            <Text>Loading polygon data...</Text>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate("/polygons")}
+          className="mb-4"
+        >
+          Back to Polygons
+        </Button>
+
+        <Alert
+          message="Error Loading Polygon"
+          description={error}
+          type="error"
+          showIcon
+          action={
+            <Button type="primary" onClick={() => window.location.reload()}>
+              Retry
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
+
+  if (!initialValues) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <Alert
+          message="Polygon Not Found"
+          description="The requested polygon could not be found."
+          type="warning"
+          showIcon
+        />
+      </div>
+    );
+  }
 
   const renderBasicInfo = () => (
     <Card>
@@ -528,9 +609,12 @@ export default function AddPolygon() {
         </Button>
 
         <Title level={2} className="mb-2">
-          Add New Polygon
+          <EditOutlined className="mr-2" />
+          Edit Polygon
         </Title>
-        <Text type="secondary">Create a new 3D polygon shape for your map</Text>
+        <Text type="secondary">
+          Update polygon information and visual properties
+        </Text>
       </div>
 
       {/* Steps */}
@@ -587,7 +671,7 @@ export default function AddPolygon() {
                         loading={loading}
                         onClick={() => handleFinalSubmit(values)}
                       >
-                        Create Polygon
+                        Update Polygon
                       </Button>
                     )}
                   </Space>
